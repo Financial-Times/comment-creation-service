@@ -1,7 +1,8 @@
 "use strict";
 
-var needle = require('needle');
-var env = require('../../env');
+const needle = require('needle');
+const env = require('../../env');
+const consoleLogger = require('../utils/consoleLogger');
 
 exports.createCollection = function (config) {
 	const promise = new Promise((resolve, reject) => {
@@ -31,6 +32,10 @@ exports.createCollection = function (config) {
 					responseBody: response ? response.body : null,
 					statusCode: response ? response.statusCode : 503
 				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.createCollection error', err);
+				}
 				return;
 			}
 
@@ -64,6 +69,10 @@ exports.getCollectionInfoPlus = function (config) {
 					responseBody: response ? response.body : null,
 					statusCode: response ? response.statusCode : 503
 				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.getCollectionInfoPlus error', err);
+				}
 				return;
 			}
 
@@ -104,6 +113,10 @@ exports.getCommentsByPage = function (config) {
 					responseBody: response ? response.body : null,
 					statusCode: response ? response.statusCode : 503
 				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.getCommentsByPage error', err);
+				}
 				return;
 			}
 
@@ -141,6 +154,10 @@ exports.getUserDetails = function (token) {
 					responseBody: response ? response.body : null,
 					statusCode: response ? response.statusCode : 503
 				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.getUserDetails error', err);
+				}
 				return;
 			}
 
@@ -182,6 +199,10 @@ exports.unfollowCollection = function (config) {
 					responseBody: response ? response.body : null,
 					statusCode: response ? response.statusCode : 503
 				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.unfollowCollection error', err);
+				}
 				return;
 			}
 
@@ -224,6 +245,10 @@ exports.postComment = function (config) {
 					responseBody: response ? response.body : null,
 					statusCode: response ? response.statusCode : 503
 				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.postComment error', err);
+				}
 				return;
 			}
 
@@ -267,6 +292,10 @@ exports.deleteComment = function (config) {
 					statusCode: response ? response.statusCode : 503,
 					errorMessage: response.errorMessage
 				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.deleteComment error', err);
+				}
 				return;
 			}
 
