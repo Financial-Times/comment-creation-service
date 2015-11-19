@@ -306,8 +306,8 @@ const CommentsCache = function (articleId, siteId) {
 			}
 
 			getStoredData().then((storedData) => {
-				if (storedData && storedData.comments && storedData.comments[pageNumber]) {
-					resolve(storedData.comments[pageNumber]);
+				if (storedData && storedData.comments && storedData.comments['page' + pageNumber]) {
+					resolve(storedData.comments['page' + pageNumber]);
 				} else {
 					if (storedData && storedData.lfTotalPages) {
 						getCommentsByPage({
