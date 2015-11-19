@@ -136,7 +136,10 @@ exports.getComments = function (req, res) {
 	promise.then((data) => {
 		res.jsonp(data);
 	}).catch((err) => {
-		consoleLogger.error(err, err.stack);
+		if (!err.statusCode) {
+			// probably exception
+			consoleLogger.error(err, err.stack);
+		}
 
 		let statusCode;
 		if (err.statusCode) {
@@ -238,7 +241,10 @@ exports.postComment = function (req, res) {
 			invalidSession: false
 		}));
 	}).catch((err) => {
-		consoleLogger.error(err, err.stack);
+		if (!err.statusCode) {
+			// probably exception
+			consoleLogger.error(err, err.stack);
+		}
 
 		var response = {
 			success: false
@@ -349,7 +355,10 @@ exports.deleteComment = function (req, res) {
 			invalidSession: false
 		}));
 	}).catch((err) => {
-		consoleLogger.error(err, err.stack);
+		if (!err.statusCode) {
+			// probably exception
+			consoleLogger.error(err, err.stack);
+		}
 
 		var response = {
 			success: false
