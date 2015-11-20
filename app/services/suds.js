@@ -8,7 +8,7 @@ const env = require('../../env');
 
 exports.getCollectionDetails = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config.articleId || !config.title || !config.url) {
+		if (!config || !config.articleId || !config.title || !config.url) {
 			reject({
 				statusCode: 400,
 				error: new Error('"articleId", "url" and "title" should be provided.')
@@ -20,10 +20,15 @@ exports.getCollectionDetails = function (config) {
 		url += '?articleId=' + encodeURIComponent(config.articleId);
 		url += '&title=' + encodeURIComponent(config.title);
 		url += '&url=' + encodeURIComponent(config.url);
-		url += '&sessionId=' + encodeURIComponent(config.sessionId);
+
+		if (config.sessionId) {
+			url += '&sessionId=' + encodeURIComponent(config.sessionId);
+		}
+
 		if (config.tags) {
 			url += '&tags=' + encodeURIComponent(config.tags);
 		}
+
 		if (config.streamType) {
 			url += '&stream_type=' + encodeURIComponent(config.streamType);
 		}
