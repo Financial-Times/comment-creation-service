@@ -136,7 +136,7 @@ exports.getComments = function (req, res) {
 	promise.then((data) => {
 		res.jsonp(data);
 	}).catch((err) => {
-		if (!err.statusCode) {
+		if (err.stack) {
 			// probably exception
 			consoleLogger.error(err, err.stack);
 		}
@@ -156,28 +156,77 @@ exports.getComments = function (req, res) {
 
 
 const postComment = function (config) {
-	const promise = new Promise((resolve, reject) => {
-		livefyreService.postComment({
-			collectionId: config.collectionId,
-			commentBody: config.commentBody,
-			token: config.token
-		}).then((commentData) => {
-			resolve({
-				bodyHtml: commentData.data.messages[0].content.bodyHtml,
-				commentId: commentData.data.messages[0].content.id,
-				createdAt: commentData.data.messages[0].content.createdAt,
-				status: commentData.status,
-				code: commentData.code
-			});
-		}).catch(reject);
+	return livefyreService.postComment({
+		collectionId: config.collectionId,
+		commentBody: config.commentBody,
+		token: config.token
+	}).then((commentData) => {
+		return {
+			bodyHtml: commentData.data.messages[0].content.bodyHtml,
+			commentId: commentData.data.messages[0].content.id,
+			createdAt: commentData.data.messages[0].content.createdAt,
+			status: commentData.status,
+			code: commentData.code
+		};
 	});
-
-	return promise;
 };
 
-exports.postComment = function (req, res) {
-	// should unfollow the user !!
 
+
+
+function sendActionSuccessResponse (req, res, data) {
+	res.jsonp(_.extend(data, {
+		success: true,
+		invalidSession: false
+	}));
+}
+
+function sendActionFailResponse(req, res, err) {
+	var isJsonP = req.query.callback ? true : false;
+
+	if (err.stack) {
+		// probably exception
+		consoleLogger.error(err, err.stack);
+	}
+
+	var response = {
+		success: false
+	};
+
+	let statusCode;
+	if (err.statusCode) {
+		statusCode = err.statusCode;
+	} else {
+		statusCode = 503;
+	}
+
+	if (err.responseBody && err.responseBody.status) {
+		response.status = err.responseBody.status;
+	}
+
+	if (err.responseBody && err.responseBody.code) {
+		response.code = err.responseBody.code;
+	} else {
+		response.code = statusCode;
+	}
+
+	if (err.responseBody && err.responseBody.msg) {
+		response.errorMessage = err.responseBody.msg;
+	} else if (err.error && err.error.message) {
+		response.errorMessage = err.error.message;
+	}
+
+	if (err.invalidSession === true) {
+		response.invalidSession = true;
+	} else {
+		response.invalidSession = false;
+	}
+
+	res.status(isJsonP ? 200 : statusCode).jsonp(response);
+}
+
+
+exports.postComment = function (req, res) {
 	const promise = new Promise((resolve, reject) => {
 		if (!req.query.collectionId || !req.query.commentBody) {
 			reject({
@@ -232,54 +281,10 @@ exports.postComment = function (req, res) {
 		}
 	});
 
-
-	var isJsonP = req.query.callback ? true : false;
-
 	promise.then((data) => {
-		res.jsonp(_.extend(data, {
-			success: true,
-			invalidSession: false
-		}));
+		sendActionSuccessResponse(req, res, data);
 	}).catch((err) => {
-		if (!err.statusCode) {
-			// probably exception
-			consoleLogger.error(err, err.stack);
-		}
-
-		var response = {
-			success: false
-		};
-
-		let statusCode;
-		if (err.statusCode) {
-			statusCode = err.statusCode;
-		} else {
-			statusCode = 503;
-		}
-
-		if (err.responseBody && err.responseBody.status) {
-			response.status = err.responseBody.status;
-		}
-
-		if (err.responseBody && err.responseBody.code) {
-			response.code = err.responseBody.code;
-		} else {
-			response.code = statusCode;
-		}
-
-		if (err.responseBody && err.responseBody.msg) {
-			response.errorMessage = err.responseBody.msg;
-		} else if (err.error && err.error.message) {
-			response.errorMessage = err.error.message;
-		}
-
-		if (err.invalidSession === true) {
-			response.invalidSession = true;
-		} else {
-			response.invalidSession = false;
-		}
-
-		res.status(isJsonP ? 200 : statusCode).jsonp(response);
+		sendActionFailResponse(req, res, err);
 	});
 };
 
@@ -288,20 +293,16 @@ exports.postComment = function (req, res) {
 
 
 const deleteComment = function (config) {
-	const promise = new Promise((resolve, reject) => {
-		livefyreService.deleteComment({
-			collectionId: config.collectionId,
-			commentId: config.commentId,
-			token: config.token
-		}).then((commentData) => {
-			resolve({
-				status: commentData.status,
-				code: commentData.code
-			});
-		}).catch(reject);
+	return livefyreService.deleteComment({
+		collectionId: config.collectionId,
+		commentId: config.commentId,
+		token: config.token
+	}).then((commentData) => {
+		return {
+			status: commentData.status,
+			code: commentData.code
+		};
 	});
-
-	return promise;
 };
 
 exports.deleteComment = function (req, res) {
@@ -346,53 +347,9 @@ exports.deleteComment = function (req, res) {
 	});
 
 
-	var isJsonP = req.query.callback ? true : false;
-
 	promise.then((data) => {
-		res.jsonp(_.extend(data, {
-			status: "ok",
-			success: true,
-			invalidSession: false
-		}));
+		sendActionSuccessResponse(req, res, data);
 	}).catch((err) => {
-		if (!err.statusCode) {
-			// probably exception
-			consoleLogger.error(err, err.stack);
-		}
-
-		var response = {
-			success: false
-		};
-
-		let statusCode;
-		if (err.statusCode) {
-			statusCode = err.statusCode;
-		} else {
-			statusCode = 503;
-		}
-
-		if (err.responseBody && err.responseBody.status) {
-			response.status = err.responseBody.status;
-		}
-
-		if (err.responseBody && err.responseBody.code) {
-			response.code = err.responseBody.code;
-		} else {
-			response.code = statusCode;
-		}
-
-		if (err.responseBody && err.responseBody.msg) {
-			response.errorMessage = err.responseBody.msg;
-		} else if (err.error && err.error.message) {
-			response.errorMessage = err.error.message;
-		}
-
-		if (err.invalidSession === true) {
-			response.invalidSession = true;
-		} else {
-			response.invalidSession = false;
-		}
-
-		res.status(isJsonP ? 200 : statusCode).jsonp(response);
+		sendActionFailResponse(req, res, err);
 	});
 };

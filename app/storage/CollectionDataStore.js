@@ -172,88 +172,72 @@ var CollectionDataStore = function (articleId) {
 	};
 
 	const getSudsCollectionDetails = function (config) {
-		const promise = new Promise((resolve, reject) => {
-			sudsService.getCollectionDetails(config).then((collectionDetails) => {
-				if (collectionDetails.notAllowedToCreateCollection === true) {
-					resolve({
-						notAllowedToCreateCollection: true
-					});
-				} else if (collectionDetails.unclassifiedArticle === true) {
-					resolve({
-						unclassified: true
-					});
-				} else if (collectionDetails.siteId && collectionDetails.collectionMeta) {
-					resolve(collectionDetails);
-				} else {
-					reject({
-						statusCode: 503,
-						error: new Error("Incorrect collection details received."),
-						responseBody: collectionDetails
-					});
-				}
-			}).catch(reject);
+		return sudsService.getCollectionDetails(config).then((collectionDetails) => {
+			if (collectionDetails.notAllowedToCreateCollection === true) {
+				return {
+					notAllowedToCreateCollection: true
+				};
+			} else if (collectionDetails.unclassifiedArticle === true) {
+				return {
+					unclassified: true
+				};
+			} else if (collectionDetails.siteId && collectionDetails.collectionMeta) {
+				return collectionDetails;
+			} else {
+				throw {
+					statusCode: 503,
+					error: new Error("Incorrect collection details received."),
+					responseBody: collectionDetails
+				};
+			}
 		});
-
-		return promise;
 	};
 
 
 
 	const createCollection = function (config) {
-		const promise = new Promise((resolve, reject) => {
-			livefyreService.createCollection(config).then(resolve).catch((err) => {
-				if (err.statusCode === 409) {
-					resolve();
-				} else {
-					reject(err);
-				}
-			});
+		return livefyreService.createCollection(config).catch((err) => {
+			if (err.statusCode === 409) {
+				return;
+			} else {
+				throw err;
+			}
 		});
-
-		return promise;
 	};
 
 
 	const fetchCollectionDetails = function (config) {
-		const promiseSuds = new Promise((resolve, reject) => {
-			getSudsCollectionDetails(config).then((sudsCollectionDetails) => {
-				if (sudsCollectionDetails.siteId && sudsCollectionDetails.collectionMeta) {
-					if (sudsCollectionDetails.collectionExists !== true) {
-						createCollection(_.pick(sudsCollectionDetails, ['siteId', 'collectionMeta', 'checksum'])).then(() => {
-							consoleLogger.log(config.articleId, 'collection created');
+		return getSudsCollectionDetails(config).then((sudsCollectionDetails) => {
+			if (sudsCollectionDetails.siteId && sudsCollectionDetails.collectionMeta) {
+				if (sudsCollectionDetails.collectionExists !== true) {
+					return createCollection(_.pick(sudsCollectionDetails, ['siteId', 'collectionMeta', 'checksum'])).then(() => {
+						consoleLogger.log(config.articleId, 'collection created');
 
-							resolve(sudsCollectionDetails);
-						}).catch(reject);
-					} else {
-						resolve(sudsCollectionDetails);
-					}
+						return sudsCollectionDetails;
+					});
 				} else {
-					resolve(sudsCollectionDetails);
+					return sudsCollectionDetails;
 				}
-			}).catch(reject);
-		});
-
-		const promise = new Promise((resolve, reject) => {
-			promiseSuds.then((sudsCollectionDetails) => {
-				if (sudsCollectionDetails.siteId) {
-					getLivefyreCollectionDetails({
-						articleId: config.articleId,
+			} else {
+				return sudsCollectionDetails;
+			}
+		}).then((sudsCollectionDetails) => {
+			if (sudsCollectionDetails.siteId) {
+				return getLivefyreCollectionDetails({
+					articleId: config.articleId,
+					siteId: sudsCollectionDetails.siteId
+				}).then((livefyreCollectionDetails) => {
+					return {
+						collectionId: livefyreCollectionDetails.collectionSettings.collectionId,
+						totalPages: (livefyreCollectionDetails.collectionSettings.archiveInfo.nPages > 1 ? livefyreCollectionDetails.collectionSettings.archiveInfo.nPages - 1 : livefyreCollectionDetails.collectionSettings.archiveInfo.nPages),
+						lfTotalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages,
 						siteId: sudsCollectionDetails.siteId
-					}).then((livefyreCollectionDetails) => {
-						resolve({
-							collectionId: livefyreCollectionDetails.collectionSettings.collectionId,
-							totalPages: (livefyreCollectionDetails.collectionSettings.archiveInfo.nPages > 1 ? livefyreCollectionDetails.collectionSettings.archiveInfo.nPages - 1 : livefyreCollectionDetails.collectionSettings.archiveInfo.nPages),
-							lfTotalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages,
-							siteId: sudsCollectionDetails.siteId
-						});
-					}).catch(reject);
-				} else {
-					resolve(sudsCollectionDetails);
-				}
-			}).catch(reject);
+					};
+				});
+			} else {
+				return sudsCollectionDetails;
+			}
 		});
-
-		return promise;
 	};
 
 	this.getCollectionDetails = function (config) {
@@ -313,110 +297,6 @@ var CollectionDataStore = function (articleId) {
 						resolve(collectionDetails);
 					}
 				}).catch(reject);
-			});
-		});
-
-		return promise;
-	};
-
-
-
-
-
-
-
-	const preprocessComments = function (comments, authors) {
-		let processedComments = [];
-		let maxEvent = 0;
-
-		comments.forEach((comment) => {
-			if (comment.vis === 1) {
-				processedComments.unshift({
-					parentId: comment.content.parentId,
-					author: {
-						id: authors[comment.content.authorId].id,
-						displayName: authors[comment.content.authorId].displayName,
-						tags: authors[comment.content.authorId].tags,
-						type: authors[comment.content.authorId].type
-					},
-					content: comment.content.bodyHtml,
-					timestamp: comment.content.createdAt,
-					commentId: comment.content.id,
-					visibility: comment.vis
-				});
-
-				if (comment.event > maxEvent) {
-					maxEvent = comment.event;
-				}
-			}
-		});
-
-		return {
-			comments: processedComments,
-			maxEvent: maxEvent
-		};
-	};
-
-
-	const fetchCommentsByPage = function (config) {
-		const promise = new Promise((resolve, reject) => {
-			if (config.pageNumber === 0) {
-				async.parallel({
-					pageLast: (callback) => {
-						livefyreService.getCommentsByPage({
-							pageNumber: config.lfTotalPages - 1,
-							articleId: config.articleId,
-							siteId: config.siteId
-						}).then((response) => {
-							callback(null, preprocessComments(response.content, response.authors));
-						}).catch((err) => {
-							callback(err);
-						});
-					},
-					pageBeforeLast: (callback) => {
-						livefyreService.getCommentsByPage({
-							pageNumber: config.lfTotalPages - 2,
-							articleId: config.articleId,
-							siteId: config.siteId
-						}).then((response) => {
-							callback(null, preprocessComments(response.content, response.authors));
-						}).catch((err) => {
-							callback(err);
-						});
-					}
-				}, (err, results) => {
-					if (err) {
-						reject(err);
-						return;
-					}
-
-					resolve({
-						comments: [].concat(results.pageLast.comments).concat(results.pageBeforeLast.comments),
-						maxEvent: results.pageLast.maxEvent > results.pageBeforeLast.maxEvent ? results.pageLast.maxEvent : results.pageBeforeLast.maxEvent
-					});
-				});
-			}
-		});
-
-		return promise;
-	};
-
-
-	this.getCommentsByPage = function (config) {
-		const promise = new Promise((resolve, reject) => {
-			self.getCollectionDetails(config).then((collectionDetails) => {
-				if (collectionDetails.notAllowedToCreateCollection || collectionDetails.unclassified) {
-					resolve(collectionDetails);
-				} else if (collectionDetails.collectionId) {
-
-				} else {
-					reject({
-						statusCode: 404,
-						error: new Error("Not found")
-					});
-				}
-			}).catch(() => {
-
 			});
 		});
 

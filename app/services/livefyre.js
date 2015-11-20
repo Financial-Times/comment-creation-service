@@ -47,6 +47,7 @@ exports.createCollection = function (config) {
 };
 
 
+
 exports.getCollectionInfoPlus = function (config) {
 	const promise = new Promise((resolve, reject) => {
 		if (!config.articleId || !config.siteId) {

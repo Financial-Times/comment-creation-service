@@ -166,19 +166,18 @@ const CommentsCache = function (articleId, siteId) {
 
 
 	const getTotalPages = function () {
-		const promise = new Promise((resolve, reject) => {
-			livefyreService.getCollectionInfoPlus({
-				articleId: articleId,
-				siteId: siteId
-			}).then((livefyreCollectionDetails) => {
-				resolve(livefyreCollectionDetails.collectionSettings.archiveInfo.nPages);
-			}).catch(reject);
+		return livefyreService.getCollectionInfoPlus({
+			articleId: articleId,
+			siteId: siteId
+		}).then((livefyreCollectionDetails) => {
+			return livefyreCollectionDetails.collectionSettings.archiveInfo.nPages;
 		});
-
-		return promise;
 	};
 
-	const preprocessComments = function (comments, authors) {
+	const preprocessComments = function (commentsData) {
+		let comments = commentsData.comments;
+		let authors = commentsData.authors;
+
 		let processedComments = [];
 		let maxEvent = 0;
 
@@ -226,8 +225,8 @@ const CommentsCache = function (articleId, siteId) {
 									pageNumber: config.lfTotalPages - 1,
 									articleId: articleId,
 									siteId: siteId
-								}).then((response) => {
-									callback(null, preprocessComments(response.content, response.authors));
+								}).then(preprocessComments).then((commentsProcessed) => {
+									callback(null, commentsProcessed);
 								}).catch((err) => {
 									callback(err);
 								});
@@ -237,13 +236,13 @@ const CommentsCache = function (articleId, siteId) {
 									pageNumber: config.lfTotalPages - 2,
 									articleId: articleId,
 									siteId: siteId
-								}).then((response) => {
-									callback(null, preprocessComments(response.content, response.authors));
+								}).then(preprocessComments).then((commentsProcessed) => {
+									callback(null, commentsProcessed);
 								}).catch((err) => {
 									callback(err);
 								});
 							}
-						}, (err, results) => {
+						}, function (err, results) {
 							if (err) {
 								reject(err);
 								return;
@@ -339,9 +338,7 @@ const CommentsCache = function (articleId, siteId) {
 						}).catch(reject);
 					}
 				}
-			}).catch(() => {
-
-			});
+			}).catch(reject);
 		});
 
 		return promise;
