@@ -1,6 +1,5 @@
 {
-  "name": "suds",
-  "version": "0.0.0",
+  "name": "ccs",
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
