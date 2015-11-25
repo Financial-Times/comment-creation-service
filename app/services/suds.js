@@ -1,8 +1,7 @@
 "use strict";
 
-const _ = require('lodash');
 const needle = require('needle');
-
+const consoleLogger = require('../utils/consoleLogger');
 const env = require('../../env');
 
 
@@ -36,7 +35,7 @@ exports.getCollectionDetails = function (config) {
 		needle.get(url, function (err, response) {
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				if (err) {
-					//log
+					consoleLogger.warn('suds.getAuth error', err);
 				}
 
 				reject({
@@ -66,7 +65,7 @@ exports.getAuth = function (sessionId) {
 		needle.get(env.suds.api.getAuth + '?sessionId=' + sessionId, function (err, response) {
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				if (err) {
-					//log
+					consoleLogger.warn('suds.getAuth error', err);
 				}
 
 				reject({

@@ -62,32 +62,16 @@ exports.getComments = function (req, res) {
 			auth: (callback) => {
 				if (sessionId) {
 					sudsService.getAuth(sessionId).then((auth) => {
-						livefyreService.getUserDetails(auth.token).then((userDetails) => {
-							callback(null, {
-								sudsAuth: _.pick(auth, ['token', 'expires', 'displayName', 'settings']),
-								modScopes: userDetails.data.modScopes
-							});
-						}).catch((err) => {
-							callback(null, {
-								sudsAuth: _.pick(auth, ['token', 'expires', 'displayName', 'settings']),
-								modScopes: null
-							});
-						});
+						callback(null, auth);
 					}).catch((err) => {
 						if (err.statusCode === 401) {
-							callback(null, {
-								sudsAuth: null,
-								modScopes: null
-							});
+							callback(null, null);
 						} else {
 							callback(err);
 						}
 					});
 				} else {
-					callback(null, {
-						sudsAuth: null,
-						modScopes: null
-					});
+					callback(null, null);
 				}
 			}
 		}, (err, results) => {
@@ -97,15 +81,15 @@ exports.getComments = function (req, res) {
 			}
 
 			let moderator = false;
-			if (results.auth && results.auth.modScopes && results.collection) {
-				results.auth.modScopes.collections.forEach((collectionId) => {
+			if (results.auth && results.auth.moderationRights && results.collection) {
+				results.auth.moderationRights.collections.forEach((collectionId) => {
 					if (String(collectionId) === String(results.collection.collectionId)) {
 						moderator = true;
 					}
 				});
 
 				if (!moderator) {
-					results.auth.modScopes.networks.forEach((network) => {
+					results.auth.moderationRights.networks.forEach((network) => {
 						if (network === env.livefyre.network.name + '.fyre.co') {
 							moderator = true;
 						}
@@ -113,7 +97,7 @@ exports.getComments = function (req, res) {
 				}
 
 				if (!moderator) {
-					results.auth.modScopes.sites.forEach((siteId) => {
+					results.auth.moderationRights.sites.forEach((siteId) => {
 						if (String(siteId) === String(results.collection.siteId)) {
 							moderator = true;
 						}
@@ -121,13 +105,13 @@ exports.getComments = function (req, res) {
 				}
 			}
 
-			if (results.auth && results.auth.sudsAuth) {
-				results.auth.sudsAuth.moderator = moderator;
+			if (results.auth && results.auth) {
+				results.auth.moderator = moderator;
 			}
 
 			resolve({
 				collection: _.omit(results.collection, ['siteId']),
-				userDetails: results.auth.sudsAuth
+				userDetails: results.auth
 			});
 		});
 	});

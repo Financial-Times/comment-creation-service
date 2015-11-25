@@ -9,7 +9,6 @@ var config = {
 			commentsByPageUrl: process.env.LIVEFYRE_COMMENTS_BY_PAGE_URL,
 			collectionInfoPlusUrl: process.env.LIVEFYRE_COLLECTION_INFO_PLUS_URL,
 			createCollectionUrl: process.env.LIVEFYRE_CREATE_COLLECTION_URL,
-			userProfileUrl: process.env.LIVEFYRE_USER_PROFILE_URL,
 			unfollowCollectionUrl: process.env.LIVEFYRE_UNFOLLOW_COLLECTION_URL,
 			postCommentUrl: process.env.LIVEFYRE_POST_COMMENT_URL,
 			deleteCommentUrl: process.env.LIVEFYRE_DELETE_COMMENT_URL

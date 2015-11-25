@@ -8,11 +8,9 @@ const mongoSanitize = require('mongo-sanitize');
 const EventEmitter = require('events');
 const env = require('../../env');
 const _ = require('lodash');
-const async = require('async');
 
 var CollectionDataStore = function (articleId) {
 	var storedData = null;
-	var self = this;
 	var storeEvents = new EventEmitter();
 
 	const mongoCollection = 'collections';
@@ -229,8 +227,6 @@ var CollectionDataStore = function (articleId) {
 				}).then((livefyreCollectionDetails) => {
 					return {
 						collectionId: livefyreCollectionDetails.collectionSettings.collectionId,
-						totalPages: (livefyreCollectionDetails.collectionSettings.archiveInfo.nPages > 1 ? livefyreCollectionDetails.collectionSettings.archiveInfo.nPages - 1 : livefyreCollectionDetails.collectionSettings.archiveInfo.nPages),
-						lfTotalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages,
 						siteId: sudsCollectionDetails.siteId
 					};
 				});

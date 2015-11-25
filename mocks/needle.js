@@ -4,13 +4,66 @@ const urlParser = require('url');
 const queryStringParser = require('querystring');
 
 module.exports = function (config) {
-	config = config || {};
+	config = config || {
+		items: []
+	};
 
 	const history = {};
 
-	this.getParamsForId = function (id) {
+	this.getParamsHistoryForId = function (id) {
 		return history[id];
 	};
+
+	config.items.forEach((configItem) => {
+		if (configItem && configItem.url) {
+			let matches = configItem.url.match(new RegExp(/\{[^\}]+\}/g));
+			configItem.urlParams = [];
+
+			if (matches && matches.length) {
+				matches.forEach((param) => {
+					param = param.replace('{', '').replace('}', '');
+
+					configItem.urlParams.push(param);
+				});
+			}
+		}
+	});
+
+
+	function matchUrl (url) {
+		let matches = {
+			urlParams: {},
+			queryParams: {},
+			urlParsed: {}
+		};
+
+		try {
+			for (let i = 0; i < config.items.length; i++) {
+				let configItem = config.items[i];
+
+				let urlMatched = url.match(new RegExp(configItem.url.replace(/\{[^\}]+\}/g, '([^\.\/]+)').replace('?', '\\?' + '(.*)')));
+				if (urlMatched && urlMatched.length) {
+					configItem.urlParams.forEach((urlParamName, index) => {
+						matches.urlParams[urlParamName] = urlMatched[index + 1];
+					});
+
+					const parsedUrl = urlParser.parse(url);
+					const parsedQueryString = queryStringParser.parse(parsedUrl.query);
+
+					matches.queryParams = parsedQueryString;
+					matches.urlParsed = parsedUrl;
+
+					return {
+						configItem: configItem,
+						matches: matches
+					};
+				}
+			}
+		} catch (e) {
+			console.error(e, e.stack);
+			throw e;
+		}
+	}
 
 	this.mock = {
 		get: function (url, params, callback) {
@@ -20,66 +73,48 @@ module.exports = function (config) {
 			}
 
 
-			// matchmaking
-			let type;
-			let match;
+			let resultOfMatch = matchUrl(url);
 
-			if (config.env.suds.api.getCollectionDetails) {
-				let matchSudsCollectionDetails = url.match(new RegExp(config.env.suds.api.getCollectionDetails.replace('?', '\\?') + '(.*)'));
-				if (matchSudsCollectionDetails && matchSudsCollectionDetails.length) {
-					type = 'sudsCollectionDetails';
-					match = matchSudsCollectionDetails;
-				}
-			}
-
-			if (config.env.suds.api.getAuth) {
-				let matchSudsGetAuth = url.match(new RegExp(config.env.suds.api.getAuth.replace('?', '\\?') + '(.*)'));
-				if (matchSudsGetAuth && matchSudsGetAuth.length) {
-					type = 'sudsGetAuth';
-					match = matchSudsGetAuth;
-				}
-			}
-
-
-			if (match && match.length) {
-				switch (type) {
-					case 'sudsCollectionDetails':
-						const parsedUrl = urlParser.parse(url);
-						const parsedQueryString = queryStringParser.parse(parsedUrl.query);
-
-						if (parsedQueryString.articleId && parsedQueryString.articleId.indexOf('down') !== -1) {
-							callback(new Error("Service down."));
-							return;
-						}
-
-						if (!config.sudsCollectionDetailsArticle[parsedQueryString.articleId]) {
-							callback(null, {
-								statusCode: 404
-							});
-							return;
-						}
-
-						history[parsedQueryString.articleId] = parsedQueryString;
-
-						callback(null, {
-							statusCode: 200,
-							body: config.sudsCollectionDetailsArticle[parsedQueryString.articleId]
-						});
-
-						break;
-
-					case 'sudsGetAuth':
-						break;
-
-					default:
-						throw "Not supported";
-				}
+			if (resultOfMatch) {
+				resultOfMatch.configItem.handler({
+					url: url,
+					params: params,
+					callback: callback,
+					configItem: resultOfMatch.configItem,
+					matches: resultOfMatch.matches,
+					history: history
+				});
 			} else {
-				throw "Not supported";
+				throw new Error("URL not covered");
 			}
 		},
-		post: function (url, params, callback) {
+		post: function (url, postData, params, callback) {
+			if (typeof params === 'function' && !callback) {
+				callback = params;
+				params = null;
+			}
 
+			if (typeof postData === 'function' && !params && !callback) {
+				callback = postData;
+				postData = null;
+			}
+
+
+			let resultOfMatch = matchUrl(url);
+
+			if (resultOfMatch) {
+				resultOfMatch.configItem.handler({
+					url: url,
+					params: params,
+					postData: postData,
+					callback: callback,
+					configItem: resultOfMatch.configItem,
+					matches: resultOfMatch.matches,
+					history: history
+				});
+			} else {
+				throw new Error("URL not covered");
+			}
 		},
 		'@global': config.global === true ? true : false
 	};

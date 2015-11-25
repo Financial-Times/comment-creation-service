@@ -6,7 +6,7 @@ const consoleLogger = require('../utils/consoleLogger');
 
 exports.createCollection = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config.collectionMeta || !config.siteId) {
+		if (!config || typeof config !== 'object' || !config.collectionMeta || !config.siteId) {
 			reject({
 				statusCode: 400,
 				error: new Error("'collectionMeta' and 'siteId' should be provided.")
@@ -50,7 +50,7 @@ exports.createCollection = function (config) {
 
 exports.getCollectionInfoPlus = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config.articleId || !config.siteId) {
+		if (!config || typeof config !== 'object' || !config.articleId || !config.siteId) {
 			reject({
 				statusCode: 400,
 				error: new Error("'collectionMeta' and 'siteId' should be provided.")
@@ -93,7 +93,7 @@ exports.getCollectionInfoPlus = function (config) {
 
 exports.getCommentsByPage = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config || typeof config !== 'object' || !config.hasOwnProperty('articleId') || !config.hasOwnProperty('siteId') || !config.hasOwnProperty('pageNumber')) {
+		if (!config || typeof config !== 'object' || !config.articleId || !config.siteId || !config.hasOwnProperty('pageNumber')) {
 			reject({
 				statusCode: 400,
 				error: new Error("'articleId', 'siteId', and 'pageNumber' should be provided.")
@@ -135,51 +135,9 @@ exports.getCommentsByPage = function (config) {
 	return promise;
 };
 
-exports.getUserDetails = function (token) {
-	const promise = new Promise((resolve, reject) => {
-		if (!token) {
-			reject({
-				statusCode: 400,
-				error: new Error("'token' should be provided.")
-			});
-			return;
-		}
-
-		let url = env.livefyre.api.userProfileUrl;
-		url = url.replace(/\{networkName\}/g, env.livefyre.network.name);
-
-		needle.get(url + '?lftoken=' + token, (err, response) => {
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
-				reject({
-					error: err,
-					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503
-				});
-
-				if (err) {
-					consoleLogger.warn('livefyre.getUserDetails error', err);
-				}
-				return;
-			}
-
-			if (response.body && response.body.data) {
-				resolve(response.body);
-			} else {
-				reject({
-					statusCode: 503,
-					error: new Error("Invalid response received from Livefyre."),
-					responseBody: response ? response.body : null
-				});
-			}
-		});
-	});
-
-	return promise;
-};
-
 exports.unfollowCollection = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config.collectionId || !config.token) {
+		if (!config || typeof config !== 'object' || !config.collectionId || !config.token) {
 			reject({
 				statusCode: 400,
 				error: new Error("'collectionId' and 'token' should be provided.")
@@ -224,7 +182,7 @@ exports.unfollowCollection = function (config) {
 
 exports.postComment = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config.collectionId || !config.token || !config.commentBody) {
+		if (!config || typeof config !== 'object' || !config.collectionId || !config.token || !config.commentBody) {
 			reject({
 				statusCode: 400,
 				error: new Error("'collectionId', 'commentBody' and 'token' should be provided.")
@@ -270,7 +228,7 @@ exports.postComment = function (config) {
 
 exports.deleteComment = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config.collectionId || !config.token || !config.commentId) {
+		if (!config || typeof config !== 'object' || !config.collectionId || !config.token || !config.commentId) {
 			reject({
 				statusCode: 400,
 				error: new Error("'collectionId', 'commentId' and 'token' should be provided.")
@@ -290,8 +248,7 @@ exports.deleteComment = function (config) {
 				reject({
 					error: err,
 					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503,
-					errorMessage: response.errorMessage
+					statusCode: response ? response.statusCode : 503
 				});
 
 				if (err) {
@@ -305,7 +262,7 @@ exports.deleteComment = function (config) {
 			} else {
 				reject({
 					statusCode: response ? response.statusCode : 503,
-					error: response && response.errorMessage ? new Error(response.errorMessage) : new Error("Invalid response received from Livefyre."),
+					error: new Error("Invalid response received from Livefyre."),
 					responseBody: response ? response.body : null
 				});
 			}

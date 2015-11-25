@@ -10,7 +10,8 @@ consoleLogger.disable();
 const env = {
 	suds: {
 		api: {
-			getCollectionDetails: 'http://suds.com/getCollectionDetails'
+			getCollectionDetails: 'http://suds.ft.com/getCollectionDetails',
+			getAuth: 'http://suds.ft.com/getAuth'
 		}
 	},
 	'@global': true
@@ -89,14 +90,74 @@ const articles = {
 	}
 };
 
+
+const sessions = {
+	valid: {
+		id: '5234wdwfrfrff54f',
+		getAuth: {
+			token: '52wed43df34',
+			displayName: 'testPseudonym'
+		}
+	}
+};
+
 const sudsCollectionDetailsArticle = {};
 Object.keys(articles).forEach((key) => {
 	sudsCollectionDetailsArticle[articles[key].toSend.articleId] = articles[key].returnData;
 });
 
+const sudsGetAuthSessions = {};
+Object.keys(sessions).forEach((key) => {
+	sudsGetAuthSessions[sessions[key].id] = sessions[key].getAuth;
+});
+
 const needleMock = new NeedleMock({
-	env: env,
-	sudsCollectionDetailsArticle: sudsCollectionDetailsArticle,
+	items: [
+		{
+			url: env.suds.api.getCollectionDetails,
+			handler: function (config) {
+				if (config.matches.queryParams.articleId && config.matches.queryParams.articleId.indexOf('down') !== -1) {
+					config.callback(new Error("Service down."));
+					return;
+				}
+
+				if (!sudsCollectionDetailsArticle[config.matches.queryParams.articleId]) {
+					config.callback(null, {
+						statusCode: 404
+					});
+					return;
+				}
+
+				config.history[config.matches.queryParams.articleId] = config.matches;
+
+				config.callback(null, {
+					statusCode: 200,
+					body: sudsCollectionDetailsArticle[config.matches.queryParams.articleId]
+				});
+			}
+		},
+		{
+			url: env.suds.api.getAuth,
+			handler: function (config) {
+				if (config.matches.queryParams.sessionId && config.matches.queryParams.sessionId.indexOf('down') !== -1) {
+					config.callback(new Error("Service down."));
+					return;
+				}
+
+				if (sudsGetAuthSessions[config.matches.queryParams.sessionId]) {
+					config.callback(null, {
+						statusCode: 200,
+						body: sudsGetAuthSessions[config.matches.queryParams.sessionId]
+					});
+					return;
+				}
+
+				config.callback(null, {
+					statusCode: 401
+				});
+			}
+		}
+	],
 	global: true
 });
 
@@ -112,6 +173,7 @@ describe('suds', function() {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 400, "Status code is correct.");
 			});
 		});
 
@@ -123,6 +185,7 @@ describe('suds', function() {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 400, "Status code is correct.");
 			});
 		});
 
@@ -134,6 +197,7 @@ describe('suds', function() {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 400, "Status code is correct.");
 			});
 		});
 
@@ -145,6 +209,7 @@ describe('suds', function() {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 400, "Status code is correct.");
 			});
 		});
 
@@ -195,25 +260,60 @@ describe('suds', function() {
 
 		it('should send all required parameters to the service', function () {
 			return suds.getCollectionDetails(articles.withRequiredParameters.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsForId(articles.withRequiredParameters.toSend.articleId), articles.withRequiredParameters.toSend, "All required parameters are sent to the service.");
+				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withRequiredParameters.toSend.articleId).queryParams, articles.withRequiredParameters.toSend, "All required parameters are sent to the service.");
 			});
 		});
 
 		it('should send `tags` parameter to the service', function () {
 			return suds.getCollectionDetails(articles.withTags.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsForId(articles.withTags.toSend.articleId), articles.withTags.toSend, "`tags` parameter is sent to the service.");
+				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withTags.toSend.articleId).queryParams, articles.withTags.toSend, "`tags` parameter is sent to the service.");
 			});
 		});
 
 		it('should send `sessionId` parameter to the service', function () {
 			return suds.getCollectionDetails(articles.withSessionId.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsForId(articles.withSessionId.toSend.articleId), articles.withSessionId.toSend, "`sessionId` parameter is sent to the service.");
+				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withSessionId.toSend.articleId).queryParams, articles.withSessionId.toSend, "`sessionId` parameter is sent to the service.");
 			});
 		});
 
 		it('should send `streamType` parameter to the service', function () {
 			return suds.getCollectionDetails(articles.withStreamType.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsForId(articles.withStreamType.toSend.articleId).stream_type, articles.withStreamType.toSend.streamType, "`streamType` parameter is sent to the service as `stream_type`.");
+				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withStreamType.toSend.articleId).queryParams.stream_type, articles.withStreamType.toSend.streamType, "`streamType` parameter is sent to the service as `stream_type`.");
+			});
+		});
+	});
+
+	describe('getAuth', function () {
+		it('should return an error if no parameters are provided', function () {
+			return suds.getAuth().then(() => {
+				assert.fail("Should not enter 'then'.");
+			}, (err) => {
+				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 400, "Status code is correct.");
+			});
+		});
+
+		it('should return an error if the service is down', function () {
+			return suds.getAuth('service-down').then(() => {
+				assert.fail("Should not enter 'then'.");
+			}, (err) => {
+				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 503, "Status code is correct.");
+			});
+		});
+
+		it('should return an error if the session is not valid', function () {
+			return suds.getAuth('invalid').then(() => {
+				assert.fail("Should not enter 'then'.");
+			}, (err) => {
+				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 401, "Status code is correct.");
+			});
+		});
+
+		it('should return the auth data if the session is valid', function () {
+			return suds.getAuth(sessions.valid.id).then((data) => {
+				assert.deepEqual(data, sessions.valid.getAuth, "Auth data successfully returned.");
 			});
 		});
 	});
