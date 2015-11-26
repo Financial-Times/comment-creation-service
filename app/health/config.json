@@ -1,0 +1,10 @@
+{
+	"schemaVersion": 1,
+	"name": "comment-creation-service",
+	"description": "comment-creation-service",
+	"checks": [
+		"db",
+		"livefyreApi",
+		"suds"
+	]
+}

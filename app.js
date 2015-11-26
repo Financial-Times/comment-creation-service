@@ -11,7 +11,9 @@ var env = require('./env');
 var urlParser = require('url');
 
 var routes = {
-	v1: require('./app/routes/v1')
+	v1: require('./app/routes/v1'),
+	__health: require('./app/routes/__health'),
+	__about: require('./app/routes/__about')
 };
 
 
@@ -71,9 +73,8 @@ if (env.maintenanceModeOn) {
 	});
 } else {
 	app.use('/v1', routes.v1);
-	/*app.use('/', routes.v1.__gtg);
 	app.use('/', routes.__health);
-	app.use('/', routes.__about);*/
+	app.use('/', routes.__about);
 	app.get('/', function (req, res) {
 		res.redirect('/apidoc');
 	});

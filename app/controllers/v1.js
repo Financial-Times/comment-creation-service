@@ -67,7 +67,9 @@ exports.getComments = function (req, res) {
 						if (err.statusCode === 401) {
 							callback(null, null);
 						} else {
-							callback(err);
+							callback({
+								serviceUp: false
+							});
 						}
 					});
 				} else {
@@ -105,7 +107,7 @@ exports.getComments = function (req, res) {
 				}
 			}
 
-			if (results.auth && results.auth) {
+			if (results.auth && !results.auth.hasOwnProperty('serviceUp')) {
 				results.auth.moderator = moderator;
 			}
 

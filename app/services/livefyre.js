@@ -53,7 +53,7 @@ exports.getCollectionInfoPlus = function (config) {
 		if (!config || typeof config !== 'object' || !config.articleId || !config.siteId) {
 			reject({
 				statusCode: 400,
-				error: new Error("'collectionMeta' and 'siteId' should be provided.")
+				error: new Error("'articleId' and 'siteId' should be provided.")
 			});
 			return;
 		}
