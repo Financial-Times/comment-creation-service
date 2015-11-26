@@ -119,14 +119,15 @@ module.exports = function (config) {
 
 															var currentObj = item;
 															let key;
+
 															for (let i = 0; i < keys.length - 1; i++) {
 																key = keys[i];
 
-																if (!item[key]) {
-																	item[key] = {};
+																if (!currentObj[key]) {
+																	currentObj[key] = {};
 																}
 
-																currentObj = item[key];
+																currentObj = currentObj[key];
 															}
 
 															currentObj[lastKey] = data.$set[dataKey];
@@ -155,11 +156,11 @@ module.exports = function (config) {
 														for (let i = 0; i < keys.length - 1; i++) {
 															key = keys[i];
 
-															if (!newData[key]) {
-																newData[key] = {};
+															if (!currentObj[key]) {
+																currentObj[key] = {};
 															}
 
-															currentObj = newData[key];
+															currentObj = currentObj[key];
 														}
 
 														currentObj[lastKey] = data.$set[dataKey];

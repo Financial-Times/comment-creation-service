@@ -2,7 +2,6 @@
 
 const db = require('../services/db');
 const livefyreService = require('../services/livefyre');
-const sudsService = require('../services/suds');
 const consoleLogger = require('../utils/consoleLogger');
 const mongoSanitize = require('mongo-sanitize');
 const EventEmitter = require('events');
@@ -175,7 +174,7 @@ const CommentsCache = function (articleId, siteId) {
 	};
 
 	const preprocessComments = function (commentsData) {
-		let comments = commentsData.comments;
+		let comments = commentsData.content;
 		let authors = commentsData.authors;
 
 		let processedComments = [];
@@ -196,10 +195,10 @@ const CommentsCache = function (articleId, siteId) {
 					commentId: comment.content.id,
 					visibility: comment.vis
 				});
+			}
 
-				if (comment.event > maxEvent) {
-					maxEvent = comment.event;
-				}
+			if (comment.event > maxEvent) {
+				maxEvent = comment.event;
 			}
 		});
 
@@ -216,7 +215,12 @@ const CommentsCache = function (articleId, siteId) {
 
 			if (config.pageNumber <= config.lfTotalPages) {
 				if (config.lfTotalPages === 0) {
-					resolve([]);
+					resolve({
+						comments: [],
+						lastEvent: 0,
+						totalPages: 0,
+						nextPage: null
+					});
 				} else {
 					if (config.pageNumber === 0 && config.lfTotalPages > 1) {
 						async.parallel({
@@ -269,7 +273,7 @@ const CommentsCache = function (articleId, siteId) {
 								articleId: articleId,
 								siteId: siteId
 							}).then((response) => {
-								resolve(_.extend(preprocessComments(response.content, response.authors), {
+								resolve(_.extend(preprocessComments(response), {
 									totalPages: totalPages,
 									nextPage: (config.pageNumber >= totalPages-1 ? null : config.pageNumber + 1)
 								}));
@@ -304,6 +308,14 @@ const CommentsCache = function (articleId, siteId) {
 				return;
 			}
 
+			if (!articleId || !siteId) {
+				reject({
+					statusCode: 503,
+					error: new Error("`articleId` or `siteId` are not provided.")
+				});
+				return;
+			}
+
 			getStoredData().then((storedData) => {
 				if (storedData && storedData.comments && storedData.comments['page' + pageNumber]) {
 					resolve(storedData.comments['page' + pageNumber]);
@@ -316,7 +328,7 @@ const CommentsCache = function (articleId, siteId) {
 							resolve(commentsData);
 
 							let dataToUpsert = {};
-							dataToUpsert['cache.comments.' + pageNumber] = commentsData;
+							dataToUpsert['cache.comments.page' + pageNumber] = commentsData;
 							upsertStoredData(dataToUpsert);
 						}).catch(reject);
 					} else {
@@ -332,7 +344,7 @@ const CommentsCache = function (articleId, siteId) {
 								resolve(commentsData);
 
 								let dataToUpsert = {};
-								dataToUpsert['cache.comments.' + pageNumber] = commentsData;
+								dataToUpsert['cache.comments.page' + pageNumber] = commentsData;
 								upsertStoredData(dataToUpsert);
 							}).catch(reject);
 						}).catch(reject);
