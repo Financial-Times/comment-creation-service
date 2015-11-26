@@ -145,29 +145,30 @@ var CollectionDataStore = function (articleId) {
 
 
 
+	const getLivefyreCollectionDetails = function (config) {
+		return livefyreService.getCollectionInfoPlus({
+			articleId: config.articleId,
+			siteId: config.siteId
+		});
+	};
 
-	const getLivefyreCollectionDetails = function (config, noOfTry) {
+	const pollLivefyreCollectionDetailsAfterCreation = function (config, noOfTry) {
 		noOfTry = noOfTry || 0;
 
-		const promise = new Promise((resolve, reject) => {
-			livefyreService.getCollectionInfoPlus({
-				articleId: config.articleId,
-				siteId: config.siteId
-			}).then((livefyreCollectionDetails) => {
-				resolve(livefyreCollectionDetails);
-			}).catch((err) => {
-				if (noOfTry < 4) {
+		return getLivefyreCollectionDetails(config).catch((err) => {
+			if (noOfTry < 4) {
+				return new Promise((resolve, reject) => {
 					setTimeout(() => {
-						getLivefyreCollectionDetails(config, noOfTry + 1).then(resolve).catch(reject);
+						pollLivefyreCollectionDetailsAfterCreation(config, noOfTry + 1).then(resolve).catch(reject);
 					}, (noOfTry + 1) * 1000);
-				} else {
-					reject(err);
-				}
-			});
+				});
+			} else {
+				throw err;
+			}
 		});
-
-		return promise;
 	};
+
+
 
 	const getSudsCollectionDetails = function (config) {
 		return sudsService.getCollectionDetails(config).then((collectionDetails) => {
@@ -211,7 +212,9 @@ var CollectionDataStore = function (articleId) {
 					return createCollection(_.pick(sudsCollectionDetails, ['siteId', 'collectionMeta', 'checksum'])).then(() => {
 						consoleLogger.log(config.articleId, 'collection created');
 
-						return sudsCollectionDetails;
+						return _.extend({
+							collectionCreated: true
+						}, sudsCollectionDetails);
 					});
 				} else {
 					return sudsCollectionDetails;
@@ -221,7 +224,15 @@ var CollectionDataStore = function (articleId) {
 			}
 		}).then((sudsCollectionDetails) => {
 			if (sudsCollectionDetails.siteId) {
-				return getLivefyreCollectionDetails({
+				let functionToGetLfCollectionDetails;
+
+				if (sudsCollectionDetails.collectionCreated) {
+					functionToGetLfCollectionDetails = pollLivefyreCollectionDetailsAfterCreation;
+				} else {
+					functionToGetLfCollectionDetails = getLivefyreCollectionDetails;
+				}
+
+				return functionToGetLfCollectionDetails({
 					articleId: config.articleId,
 					siteId: sudsCollectionDetails.siteId
 				}).then((livefyreCollectionDetails) => {
@@ -238,19 +249,28 @@ var CollectionDataStore = function (articleId) {
 
 	this.getCollectionDetails = function (config) {
 		const promise = new Promise((resolve, reject) => {
-			if (!config.articleId || !config.url || !config.title) {
+			if (!config || typeof config !== 'object' || !config.url || !config.title) {
 				reject({
 					statusCode: 400,
-					error: new Error("'articleId', 'url' and 'title' are not provided.")
+					error: new Error("'url' and 'title' are not provided.")
 				});
 				return;
 			}
 
 
-			if (config.articleId !== articleId) {
+			if (!articleId) {
+				reject({
+					statusCode: 503,
+					error: new Error("Article ID is not provided.")
+				});
+				return;
+			}
+
+
+			if (config.articleId && config.articleId !== articleId) {
 				consoleLogger.error(articleId, "ArticleID provided to the function is in conflict with the CollectionDataStore's articleId");
 				reject({
-					statusCode: 400,
+					statusCode: 503,
 					error: new Error("Article ID provided is in conflict with the data stores's ID.")
 				});
 				return;
