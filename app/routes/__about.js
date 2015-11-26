@@ -7,7 +7,7 @@ const env = require('../../env');
 
 var controller = function (req, res, next) {
 	res.jsonp({
-		name: "session-user-data-service",
+		name: "comment-creation-service",
 		versions: [
 			env.host + "/v1"
 		]
