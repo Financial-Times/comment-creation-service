@@ -22,6 +22,9 @@ const env = {
 			collectionInfoPlusUrl: 'http://{networkName}.fyre.co/{siteId}/article/{articleIdBase64}/collectionInfoPlusUrl'
 		}
 	},
+	cache: {
+		commentsExpireInMinutes: 5
+	},
 	'@global': true
 };
 
@@ -83,6 +86,31 @@ const articles = {
 	onePage: {
 		id: '524488fe-f1e9-4991-a467-b0ae33d7d5b3',
 		siteId: 745344,
+		collectionInfo: {
+			headDocument: [],
+			collectionSettings: {
+				archiveInfo: {
+					nPages: 1
+				}
+			}
+		},
+		comments: {
+			0: {
+				content: [
+					generateLfComment(1, 'author1', 1),
+					generateLfComment(2, 'author2', 1),
+					generateLfComment(3, 'author1', 2)
+				],
+				authors: {
+					author1: generateLfUser(1),
+					author2: generateLfUser(2)
+				}
+			}
+		}
+	},
+	onePage2: {
+		id: '386f7119-09d5-4c6e-9f1b-0901bcd5ec57',
+		siteId: 354563,
 		collectionInfo: {
 			headDocument: [],
 			collectionSettings: {
@@ -184,6 +212,74 @@ const articles = {
 				}
 			}
 		}
+	},
+	totalPagesCached: {
+		id: 'f9bd98f1-ed0b-4e2d-98f5-d068d11649fd',
+		siteId: 5324534,
+		cached: {
+			lfTotalPages: 3
+		},
+		comments: {
+			0: {
+				content: [
+					generateLfComment(1, 'author1', 1),
+					generateLfComment(2, 'author2', 1),
+					generateLfComment(3, 'author1', 2)
+				],
+				authors: {
+					author1: generateLfUser(1),
+					author2: generateLfUser(2)
+				}
+			},
+			1: {
+				content: [
+					generateLfComment(4, 'author1', 1),
+					generateLfComment(5, 'author1', 2)
+				],
+				authors: {
+					author1: generateLfUser(1),
+					author2: generateLfUser(2)
+				}
+			},
+			2: {
+				content: [
+					generateLfComment(6, 'author1', 1),
+					generateLfComment(7, 'author1', 1)
+				],
+				authors: {
+					author1: generateLfUser(1),
+					author2: generateLfUser(2)
+				}
+			}
+		}
+	},
+	commentsCached: {
+		id: 'aef135bd-cd29-4d59-92a3-e13d5a09a39b',
+		siteId: 5242342,
+		cached: {
+			lfTotalPages: 3,
+			comments: {
+				page0: {
+					comments: [
+						transformLfComment(generateLfComment(7, 'author1', 1), generateLfUser(1)),
+						transformLfComment(generateLfComment(5, 'author2', 1), generateLfUser(2)),
+						transformLfComment(generateLfComment(4, 'author1', 1), generateLfUser(1))
+					],
+					totalPages: 2,
+					nextPage: 1,
+					lastEvent: 7
+				},
+				page1: {
+					comments: [
+						transformLfComment(generateLfComment(3, 'author1', 1), generateLfUser(1)),
+						transformLfComment(generateLfComment(1, 'author2', 1), generateLfUser(2))
+					],
+					totalPages: 3,
+					nextPage: null,
+					lastEvent: 3
+				}
+			}
+		}
 	}
 };
 
@@ -256,9 +352,18 @@ const needleMock = new NeedleMock({
 	global: true
 });
 
+
+const commentsCache = [];
+Object.keys(articles).forEach((key) => {
+	if (articles[key].cached) {
+		commentsCache.push(_.extend({_id: articles[key].id + '-' + articles[key].siteId}, articles[key].cached));
+	}
+});
+
+
 const mongodbMock = new MongodbMock({
 	dbMock: {
-		comments: []
+		comments: commentsCache
 	},
 	global: true
 });
@@ -327,20 +432,51 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should return empty array if there are no comments and page number is 0', function () {
+		it('should return empty array and cache it if there are no pages and pageNumber is 0', function () {
+			let startTime = new Date();
+
 			let commentsCache = new CommentsCache(articles.noPages.id, articles.noPages.siteId);
 
-			return commentsCache.getCommentsByPage(0).then((data) => {
-				assert.deepEqual(data, {
-					comments: [],
-					lastEvent: 0,
-					totalPages: 0,
-					nextPage: null
-				}, "Comments returned correctly.");
+			return new Promise((resolve, reject) => {
+				commentsCache.getCommentsByPage(0).then((data) => {
+					let endTime = new Date();
+
+					assert.deepEqual(data, {
+						comments: [],
+						lastEvent: 0,
+						totalPages: 0,
+						nextPage: null
+					}, "Comments returned correctly.");
+
+					setTimeout(() => {
+						var commentsCacheEntry = mongodbMock.findInDb('comments', {
+							_id: articles.noPages.id + '-' + articles.noPages.siteId
+						});
+
+						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
+						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
+							_id: articles.noPages.id + '-' + articles.noPages.siteId,
+							lfTotalPages: 0,
+							comments: {
+								page0: {
+									comments: [],
+									lastEvent: 0,
+									totalPages: 0,
+									nextPage: null
+								}
+							}
+						}, "Comments total pages correctly cached.");
+
+						assert.ok(commentsCacheEntry[0].expireAt >= new Date(startTime.getTime() + env.cache.commentsExpireInMinutes * 60 * 1000) &&
+							commentsCacheEntry[0].expireAt <= new Date(endTime.getTime() + env.cache.commentsExpireInMinutes * 60 * 1000), "Expires in " + env.cache.commentsExpireInMinutes + " minutes.");
+
+						resolve();
+					}, 10);
+				}).catch(reject);
 			});
 		});
 
-		it('should return 404 if there are no comments and page number is 1', function () {
+		it('should return 404 if the page does not exist', function () {
 			let commentsCache = new CommentsCache(articles.noPages.id, articles.noPages.siteId);
 
 			return commentsCache.getCommentsByPage(1).then(() => {
@@ -351,39 +487,6 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should fetch totalPages and comments and cache it', function () {
-			let commentsCache = new CommentsCache(articles.noPages.id, articles.noPages.siteId);
-
-			return new Promise((resolve, reject) => {
-				return commentsCache.getCommentsByPage(0).then(() => {
-					setTimeout(() => {
-						var commentsCacheEntry = mongodbMock.findInDb('comments', {
-							_id: articles.noPages.id + '-' + articles.noPages.siteId
-						});
-
-						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
-						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
-							_id: articles.noPages.id + '-' + articles.noPages.siteId,
-							lfTotalPages: 0,
-							cache: {
-								comments: {
-									page0: {
-										comments: [],
-										lastEvent: 0,
-										totalPages: 0,
-										nextPage: null
-									}
-								}
-							}
-						}, "Comments total pages correctly cached.");
-
-						resolve();
-					}, 10);
-				}).catch(reject);
-			});
-		});
-
-
 
 		it('should return the comments for an existing page number (processed and ordered by recent first)', function () {
 			let commentsCache = new CommentsCache(articles.onePage.id, articles.onePage.siteId);
@@ -391,8 +494,8 @@ describe('CommentsCache', function () {
 
 			let expectedComments = {
 				comments: [
-					transformLfComment(articles.twoPages.comments[0].content[1], articles.twoPages.comments[0].authors['author2']),
-					transformLfComment(articles.twoPages.comments[0].content[0], articles.twoPages.comments[0].authors['author1'])
+					transformLfComment(articles.onePage.comments[0].content[1], articles.onePage.comments[0].authors['author2']),
+					transformLfComment(articles.onePage.comments[0].content[0], articles.onePage.comments[0].authors['author1'])
 				],
 				lastEvent: 3,
 				totalPages: 1,
@@ -413,10 +516,8 @@ describe('CommentsCache', function () {
 						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
 							_id: articles.onePage.id + '-' + articles.onePage.siteId,
 							lfTotalPages: 1,
-							cache: {
-								comments: {
-									page0: expectedComments
-								}
+							comments: {
+								page0: expectedComments
 							}
 						}, "Comments total pages correctly cached.");
 
@@ -426,7 +527,7 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should return 404 if there are no comments and page number is 1', function () {
+		it('should return 404 if the page does not exist', function () {
 			let commentsCache = new CommentsCache(articles.onePage.id, articles.onePage.siteId);
 
 			return commentsCache.getCommentsByPage(1).then(() => {
@@ -468,10 +569,8 @@ describe('CommentsCache', function () {
 						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
 							_id: articles.twoPages.id + '-' + articles.twoPages.siteId,
 							lfTotalPages: 2,
-							cache: {
-								comments: {
-									page0: expectedComments
-								}
+							comments: {
+								page0: expectedComments
 							}
 						}, "Comments correctly cached.");
 
@@ -481,7 +580,7 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should return 404 if there are no comments and page number is 1', function () {
+		it('should return 404 if the page does not exist', function () {
 			let commentsCache = new CommentsCache(articles.twoPages.id, articles.twoPages.siteId);
 
 			return commentsCache.getCommentsByPage(1).then(() => {
@@ -523,10 +622,8 @@ describe('CommentsCache', function () {
 						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
 							_id: articles.threePages.id + '-' + articles.threePages.siteId,
 							lfTotalPages: 3,
-							cache: {
-								comments: {
-									page0: expectedComments
-								}
+							comments: {
+								page0: expectedComments
 							}
 						}, "Comments correctly cached.");
 
@@ -561,7 +658,7 @@ describe('CommentsCache', function () {
 						});
 
 						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
-						assert.deepEqual(commentsCacheEntry[0].cache.comments.page1, expectedComments, "Comments correctly cached.");
+						assert.deepEqual(commentsCacheEntry[0].comments.page1, expectedComments, "Comments correctly cached.");
 
 						resolve();
 					}, 10);
@@ -569,7 +666,7 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should return 404 if there are no comments and page number is 2', function () {
+		it('should return 404 if the page does not exist', function () {
 			let commentsCache = new CommentsCache(articles.threePages.id, articles.threePages.siteId);
 
 			return commentsCache.getCommentsByPage(2).then(() => {
@@ -582,7 +679,97 @@ describe('CommentsCache', function () {
 
 
 		// total pages cached
+		it('should load total pages from cache if it exists', function () {
+			let commentsCache = new CommentsCache(articles.totalPagesCached.id, articles.totalPagesCached.siteId);
+
+
+			let expectedComments = {
+				comments: [
+					transformLfComment(articles.totalPagesCached.comments[2].content[1], articles.totalPagesCached.comments[0].authors['author1']),
+					transformLfComment(articles.totalPagesCached.comments[2].content[0], articles.totalPagesCached.comments[0].authors['author1']),
+					transformLfComment(articles.totalPagesCached.comments[1].content[0], articles.totalPagesCached.comments[0].authors['author1']),
+				],
+				lastEvent: 7,
+				totalPages: 2,
+				nextPage: 1
+			};
+
+			return commentsCache.getCommentsByPage(0).then((data) => {
+				assert.deepEqual(data, expectedComments, "Comments returned correctly.");
+			});
+		});
+
+		it('should return 404 if the page does not exist', function () {
+			let commentsCache = new CommentsCache(articles.totalPagesCached.id, articles.totalPagesCached.siteId);
+
+			return commentsCache.getCommentsByPage(2).then(() => {
+				assert.fail("Should not enter 'then'.");
+			}, (err) => {
+				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 404, "Status code is correct.");
+			});
+		});
+
+
 		// cached all
+		it('should load cached comments if exists', function () {
+			let commentsCache = new CommentsCache(articles.commentsCached.id, articles.commentsCached.siteId);
+
+			return commentsCache.getCommentsByPage(0).then((data) => {
+				assert.deepEqual(data, articles.commentsCached.cached.comments.page0, "Comments returned correctly.");
+			});
+		});
+
+		it('should return 404 if the page does not exist (comments cached)', function () {
+			let commentsCache = new CommentsCache(articles.commentsCached.id, articles.commentsCached.siteId);
+
+			return commentsCache.getCommentsByPage(2).then(() => {
+				assert.fail("Should not enter 'then'.");
+			}, (err) => {
+				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 404, "Status code is correct.");
+			});
+		});
+
+
+
+		// cache down
+		it('should return the comments for an existing page number (processed and ordered by recent first)', function () {
+			let originalMongoUri = env.mongo.uri;
+			env.mongo.uri = 'invalid';
+
+
+			let commentsCache = new CommentsCache(articles.onePage2.id, articles.onePage2.siteId);
+
+			let expectedComments = {
+				comments: [
+					transformLfComment(articles.onePage2.comments[0].content[1], articles.onePage2.comments[0].authors['author2']),
+					transformLfComment(articles.onePage2.comments[0].content[0], articles.onePage2.comments[0].authors['author1'])
+				],
+				lastEvent: 3,
+				totalPages: 1,
+				nextPage: null
+			};
+
+
+			return new Promise((resolve, reject) => {
+				commentsCache.getCommentsByPage(0).then((data) => {
+					env.mongo.uri = originalMongoUri;
+
+					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
+
+					setTimeout(() => {
+						var commentsCacheEntry = mongodbMock.findInDb('comments', {
+							_id: articles.onePage2.id + '-' + articles.onePage2.siteId
+						});
+
+						assert.equal(commentsCacheEntry.length, 0, "Cache entry not created.");
+
+						resolve();
+					}, 10);
+				}).catch(reject);
+			});
+		});
 	});
 });
 

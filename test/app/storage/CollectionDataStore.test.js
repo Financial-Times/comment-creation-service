@@ -74,6 +74,21 @@ const articles = {
 			}
 		}
 	},
+	collectionExists2: {
+		id: '6a67cfad-22ac-4ae4-b12d-071666452fbb',
+		url: 'http://ft.com/6a67cfad-22ac-4ae4-b12d-071666452fbb.html',
+		title: 'Collection exists article 2',
+		sudsInfo: {
+			siteId: 523423,
+			collectionExists: true
+		},
+		collectionInfo: {
+			headDocument: [],
+			collectionSettings: {
+				collectionId: 634534
+			}
+		}
+	},
 	cached: {
 		id: '0d08da26-819c-4b37-a198-53b77c6a80b1',
 		url: 'http://ft.com/0d08da26-819c-4b37-a198-53b77c6a80b1.html',
@@ -472,6 +487,41 @@ describe('CollectionDataStore', function () {
 							collectionId: articles.cached.cache.collectionId,
 							siteId: articles.cached.cache.siteId
 						}, "Collection details are still in cache.");
+
+						resolve();
+					}, 10);
+				}).catch(reject);
+			});
+		});
+
+
+		it('should be functioning correctly even if the connection to the DB is down', function () {
+			let originalMongoUri = env.mongo.uri;
+			env.mongo.uri = 'invalid';
+
+
+			let collectionDataStore = new CollectionDataStore(articles.collectionExists2.id);
+
+			return new Promise((resolve, reject) => {
+				collectionDataStore.getCollectionDetails({
+					title: articles.collectionExists2.title,
+					url: articles.collectionExists2.url
+				}).then((data) => {
+					env.mongo.uri = originalMongoUri;
+
+
+					assert.ok(!data.notAllowedToCreateCollection, "`notAllowedToCreateCollection` flag is not present.");
+					assert.deepEqual(data, {
+						collectionId: articles.collectionExists2.collectionInfo.collectionSettings.collectionId,
+						siteId: articles.collectionExists2.sudsInfo.siteId
+					}, "Collection details successfully returned.");
+
+					setTimeout(() => {
+						var collectionCache = mongodbMock.findInDb('collections', {
+							_id: articles.collectionExists2.id
+						});
+
+						assert.equal(collectionCache.length, 0, "Cache entry not created.");
 
 						resolve();
 					}, 10);

@@ -328,7 +328,7 @@ const CommentsCache = function (articleId, siteId) {
 							resolve(commentsData);
 
 							let dataToUpsert = {};
-							dataToUpsert['cache.comments.page' + pageNumber] = commentsData;
+							dataToUpsert['comments.page' + pageNumber] = commentsData;
 							upsertStoredData(dataToUpsert);
 						}).catch(reject);
 					} else {
@@ -344,13 +344,22 @@ const CommentsCache = function (articleId, siteId) {
 								resolve(commentsData);
 
 								let dataToUpsert = {};
-								dataToUpsert['cache.comments.page' + pageNumber] = commentsData;
+								dataToUpsert['comments.page' + pageNumber] = commentsData;
 								upsertStoredData(dataToUpsert);
 							}).catch(reject);
 						}).catch(reject);
 					}
 				}
-			}).catch(reject);
+			}).catch(() => {
+				getTotalPages().then((lfTotalPages) => {
+					getCommentsByPage({
+						lfTotalPages: lfTotalPages,
+						pageNumber: pageNumber
+					}).then((commentsData) => {
+						resolve(commentsData);
+					}).catch(reject);
+				}).catch(reject);
+			});
 		});
 
 		return promise;
