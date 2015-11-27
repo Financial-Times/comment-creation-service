@@ -92,7 +92,7 @@ const CommentsCache = function (articleId, siteId) {
 
 
 	const sanitizeData = function (data) {
-		if (data && typeof data === 'object' && Object.keys(data).length) {
+		if (data && typeof data === 'object' && !(data instanceof Array) && Object.keys(data).length) {
 			let keys = Object.keys(data);
 			let newData = {};
 
