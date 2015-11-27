@@ -13,7 +13,8 @@ var urlParser = require('url');
 var routes = {
 	v1: require('./app/routes/v1'),
 	__health: require('./app/routes/__health'),
-	__about: require('./app/routes/__about')
+	__about: require('./app/routes/__about'),
+	__gtg: require('./app/routes/__gtg')
 };
 
 
@@ -75,6 +76,7 @@ if (env.maintenanceModeOn) {
 	app.use('/v1', routes.v1);
 	app.use('/', routes.__health);
 	app.use('/', routes.__about);
+	app.use('/', routes.__gtg);
 	app.get('/', function (req, res) {
 		res.redirect('/apidoc');
 	});
