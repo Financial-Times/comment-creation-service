@@ -8,7 +8,7 @@ const env = require('../../env');
 const async = require('async');
 const _ = require('lodash');
 const consoleLogger = require('../utils/consoleLogger');
-
+const validUrl = require('valid-url');
 
 
 
@@ -18,6 +18,14 @@ exports.getComments = function (req, res) {
 			reject({
 				statusCode: 400,
 				error: new Error('"articleId", "title" and "url" should be provided.')
+			});
+			return;
+		}
+
+		if (!validUrl.isUri(req.query.url)) {
+			reject({
+				statusCode: 400,
+				error: new Error('"url" is not a valid URL.')
 			});
 			return;
 		}
