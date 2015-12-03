@@ -112,7 +112,7 @@ app.use(function(err, req, res, next) {
 
 
 process.on('uncaughtException', function(err) {
-    //consoleLogger.error('Uncaught exception: ', err, err.stack);
+    consoleLogger.error('Uncaught EXCEPTION: ', err, err.stack);
 });
 
 
