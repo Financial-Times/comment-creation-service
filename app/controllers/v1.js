@@ -8,8 +8,7 @@ const env = require('../../env');
 const async = require('async');
 const _ = require('lodash');
 const consoleLogger = require('../utils/consoleLogger');
-const validUrl = require('valid-url');
-
+const urlParser = require('url');
 
 
 exports.getComments = function (req, res) {
@@ -22,7 +21,8 @@ exports.getComments = function (req, res) {
 			return;
 		}
 
-		if (!validUrl.isUri(req.query.url)) {
+		var parsedUrl = urlParser.parse(req.query.url);
+		if (!parsedUrl || !parsedUrl.host || parsedUrl.host.indexOf('.') === -1) {
 			reject({
 				statusCode: 400,
 				error: new Error('"url" is not a valid URL.')
