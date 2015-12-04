@@ -70,14 +70,17 @@ var CollectionDataStore = function (articleId) {
 					}).catch((err) => {
 						consoleLogger.warn(articleId, 'error retrieving the cache', err);
 
-						fetchingStoreInProgress = false;
 						rejectInProgress(err);
 					});
 				});
 
 				promiseInProgress.then((data) => {
+					fetchingStoreInProgress = false;
+
 					storeEvents.emit('storedDataFetched_resolve', data);
 				}).catch((err) => {
+					fetchingStoreInProgress = false;
+
 					storeEvents.emit('storedDataFetched_reject', err);
 				});
 			}

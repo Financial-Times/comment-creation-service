@@ -6,6 +6,7 @@ const proxyquire =  require('proxyquire');
 const consoleLogger = require('../../../app/utils/consoleLogger');
 const NeedleMock = require('../../../mocks/needle');
 const MongodbMock = require('../../../mocks/mongodb');
+const uuid = require('node-uuid');
 
 consoleLogger.disable();
 
@@ -70,154 +71,13 @@ function transformLfComment (lfComment, lfAuthor) {
 	};
 }
 
+
 const articles = {
-	noPages: {
-		id: 'fee235a5-9391-4f58-8435-212f31d9866e',
-		siteId: 524235,
-		collectionInfo: {
-			headDocument: [],
-			collectionSettings: {
-				archiveInfo: {
-					nPages: 0
-				}
-			}
-		}
-	},
-	onePage: {
-		id: '524488fe-f1e9-4991-a467-b0ae33d7d5b3',
-		siteId: 745344,
-		collectionInfo: {
-			headDocument: [],
-			collectionSettings: {
-				archiveInfo: {
-					nPages: 1
-				}
-			}
-		},
-		comments: {
-			0: {
-				content: [
-					generateLfComment(1, 'author1', 1),
-					generateLfComment(2, 'author2', 1),
-					generateLfComment(3, 'author1', 2)
-				],
-				authors: {
-					author1: generateLfUser(1),
-					author2: generateLfUser(2)
-				}
-			}
-		}
-	},
-	onePage2: {
-		id: '386f7119-09d5-4c6e-9f1b-0901bcd5ec57',
-		siteId: 354563,
-		collectionInfo: {
-			headDocument: [],
-			collectionSettings: {
-				archiveInfo: {
-					nPages: 1
-				}
-			}
-		},
-		comments: {
-			0: {
-				content: [
-					generateLfComment(1, 'author1', 1),
-					generateLfComment(2, 'author2', 1),
-					generateLfComment(3, 'author1', 2)
-				],
-				authors: {
-					author1: generateLfUser(1),
-					author2: generateLfUser(2)
-				}
-			}
-		}
-	},
-	twoPages: {
-		id: '5a70daee-b06b-4eaa-99db-e8b11cbc351f',
-		siteId: 345345,
-		collectionInfo: {
-			headDocument: [],
-			collectionSettings: {
-				archiveInfo: {
-					nPages: 2
-				}
-			}
-		},
-		comments: {
-			0: {
-				content: [
-					generateLfComment(1, 'author1', 1),
-					generateLfComment(2, 'author2', 1),
-					generateLfComment(3, 'author1', 2)
-				],
-				authors: {
-					author1: generateLfUser(1),
-					author2: generateLfUser(2)
-				}
-			},
-			1: {
-				content: [
-					generateLfComment(4, 'author1', 1),
-					generateLfComment(5, 'author1', 2)
-				],
-				authors: {
-					author1: generateLfUser(1),
-					author2: generateLfUser(2)
-				}
-			}
-		}
-	},
-	threePages: {
-		id: '4d2f9428-956e-43cf-a8c0-94b761afa68c',
-		siteId: 6345345,
-		collectionInfo: {
-			headDocument: [],
-			collectionSettings: {
-				archiveInfo: {
-					nPages: 3
-				}
-			}
-		},
-		comments: {
-			0: {
-				content: [
-					generateLfComment(1, 'author1', 1),
-					generateLfComment(2, 'author2', 1),
-					generateLfComment(3, 'author1', 2)
-				],
-				authors: {
-					author1: generateLfUser(1),
-					author2: generateLfUser(2)
-				}
-			},
-			1: {
-				content: [
-					generateLfComment(4, 'author1', 1),
-					generateLfComment(5, 'author1', 2)
-				],
-				authors: {
-					author1: generateLfUser(1),
-					author2: generateLfUser(2)
-				}
-			},
-			2: {
-				content: [
-					generateLfComment(6, 'author1', 1),
-					generateLfComment(7, 'author1', 1)
-				],
-				authors: {
-					author1: generateLfUser(1),
-					author2: generateLfUser(2)
-				}
-			}
-		}
-	},
 	totalPagesCached: {
 		id: 'f9bd98f1-ed0b-4e2d-98f5-d068d11649fd',
 		siteId: 5324534,
 		cached: {
-			lfTotalPages: 3
+			totalPages: 3
 		},
 		comments: {
 			0: {
@@ -257,7 +117,7 @@ const articles = {
 		id: 'aef135bd-cd29-4d59-92a3-e13d5a09a39b',
 		siteId: 5242342,
 		cached: {
-			lfTotalPages: 3,
+			totalPages: 2,
 			comments: {
 				page0: {
 					comments: [
@@ -266,7 +126,7 @@ const articles = {
 						transformLfComment(generateLfComment(4, 'author1', 1), generateLfUser(1))
 					],
 					totalPages: 2,
-					nextPage: 1,
+					nextPage: null,
 					lastEvent: 7
 				},
 				page1: {
@@ -274,8 +134,8 @@ const articles = {
 						transformLfComment(generateLfComment(3, 'author1', 1), generateLfUser(1)),
 						transformLfComment(generateLfComment(1, 'author2', 1), generateLfUser(2))
 					],
-					totalPages: 3,
-					nextPage: null,
+					totalPages: 2,
+					nextPage: 0,
 					lastEvent: 3
 				}
 			}
@@ -287,6 +147,79 @@ const byArticleId = {};
 Object.keys(articles).forEach((key) => {
 	byArticleId[articles[key].id] = articles[key];
 });
+
+
+function generateArticle (noOfPages) {
+	let id = uuid.v4();
+	let siteId = parseInt(Math.random() * 899999 + 100000, 10);
+
+	let articleData = {
+		id: id,
+		siteId: siteId,
+		collectionInfo: {
+			headDocument: [],
+			collectionSettings: {
+				archiveInfo: {
+					nPages: noOfPages
+				}
+			}
+		}
+	};
+
+	const author1 = generateLfUser(1);
+	const author2 = generateLfUser(2);
+
+	if (noOfPages > 0) {
+		articleData.comments = {};
+
+		let commentIdIndex = 1;
+		for (let i = 0; i < noOfPages; i++) {
+			if (!articleData.comments[i]) {
+				articleData.comments[i] = {
+					content: [],
+					authors: {
+						author1: author1,
+						author2: author2
+					}
+				};
+			}
+
+			for (let j = 0; j < 4; j++) {
+				articleData.comments[i].content.push(generateLfComment(commentIdIndex, 'author' + (j % 2 + 1), j % 2 + 1));
+				commentIdIndex++;
+			}
+		}
+	}
+
+	byArticleId[id] = articleData;
+
+	return articleData;
+}
+
+
+function transformLfPage (article, page) {
+	let comments = article.comments[page].content;
+	let authors = article.comments[page].authors;
+
+	let processedComments = [];
+	let maxEvent = 0;
+
+	comments.forEach((comment) => {
+		if (comment.vis === 1) {
+			processedComments.unshift(transformLfComment(comment, authors[comment.content.authorId]));
+		}
+
+		if (comment.event > maxEvent) {
+			maxEvent = comment.event;
+		}
+	});
+
+	return {
+		comments: processedComments,
+		lastEvent: maxEvent
+	};
+}
+
 
 const needleMock = new NeedleMock({
 	items: [
@@ -380,7 +313,7 @@ describe('CommentsCache', function () {
 		it('should return error if `articleId` is not provided', function () {
 			let commentsCache = new CommentsCache();
 
-			return commentsCache.getCommentsByPage(1).then(() => {
+			return commentsCache.getCommentsByPage().then(() => {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
@@ -391,7 +324,7 @@ describe('CommentsCache', function () {
 		it('should return error if `siteId` is not provided', function () {
 			let commentsCache = new CommentsCache('articleId');
 
-			return commentsCache.getCommentsByPage(1).then(() => {
+			return commentsCache.getCommentsByPage().then(() => {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
@@ -399,21 +332,10 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should return error if `pageNumber` is not provided', function () {
-			let commentsCache = new CommentsCache('articleId', 'siteId');
-
-			return commentsCache.getCommentsByPage().then(() => {
-				assert.fail("Should not enter 'then'.");
-			}, (err) => {
-				assert.ok(err, "Error is returned.");
-				assert.equal(err.statusCode, 400, "Status code is correct.");
-			});
-		});
-
 		it('should return error if a service is down', function () {
 			let commentsCache = new CommentsCache('service-down', 'siteId');
 
-			return commentsCache.getCommentsByPage(1).then(() => {
+			return commentsCache.getCommentsByPage().then(() => {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
@@ -424,7 +346,7 @@ describe('CommentsCache', function () {
 		it('should return error if the article/collection is not found', function () {
 			let commentsCache = new CommentsCache('not found', 'siteId');
 
-			return commentsCache.getCommentsByPage(1).then(() => {
+			return commentsCache.getCommentsByPage().then(() => {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
@@ -432,10 +354,51 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should return empty array and cache it if there are no pages and pageNumber is 0', function () {
+
+		it('should return empty array and cache only the total page number', function () {
 			let startTime = new Date();
 
-			let commentsCache = new CommentsCache(articles.noPages.id, articles.noPages.siteId);
+			let article = generateArticle(0);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
+
+			return new Promise((resolve, reject) => {
+				commentsCache.getCommentsByPage().then((data) => {
+					let endTime = new Date();
+
+					assert.deepEqual(data, {
+						comments: [],
+						lastEvent: 0,
+						totalPages: 0,
+						nextPage: null
+					}, "Comments returned correctly.");
+
+					setTimeout(() => {
+						var commentsCacheEntry = mongodbMock.findInDb('comments', {
+							_id: article.id + '-' + article.siteId
+						});
+
+						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
+						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
+							_id: article.id + '-' + article.siteId,
+							totalPages: 0
+						}, "Comments total pages correctly cached.");
+
+						assert.ok(commentsCacheEntry[0].expireAt >= new Date(startTime.getTime() + env.cache.commentsExpireInMinutes * 60 * 1000) &&
+							commentsCacheEntry[0].expireAt <= new Date(endTime.getTime() + env.cache.commentsExpireInMinutes * 60 * 1000), "Expires in " + env.cache.commentsExpireInMinutes + " minutes.");
+
+						resolve();
+					}, 10);
+				}).catch(reject);
+			});
+		});
+
+		it('should return empty array and cache only the total page number if there are no pages and pageNumber is 0', function () {
+			let startTime = new Date();
+
+			let article = generateArticle(0);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
 
 			return new Promise((resolve, reject) => {
 				commentsCache.getCommentsByPage(0).then((data) => {
@@ -450,21 +413,13 @@ describe('CommentsCache', function () {
 
 					setTimeout(() => {
 						var commentsCacheEntry = mongodbMock.findInDb('comments', {
-							_id: articles.noPages.id + '-' + articles.noPages.siteId
+							_id: article.id + '-' + article.siteId
 						});
 
 						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
 						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
-							_id: articles.noPages.id + '-' + articles.noPages.siteId,
-							lfTotalPages: 0,
-							comments: {
-								page0: {
-									comments: [],
-									lastEvent: 0,
-									totalPages: 0,
-									nextPage: null
-								}
-							}
+							_id: article.id + '-' + article.siteId,
+							totalPages: 0
 						}, "Comments total pages correctly cached.");
 
 						assert.ok(commentsCacheEntry[0].expireAt >= new Date(startTime.getTime() + env.cache.commentsExpireInMinutes * 60 * 1000) &&
@@ -477,7 +432,8 @@ describe('CommentsCache', function () {
 		});
 
 		it('should return 404 if the page does not exist', function () {
-			let commentsCache = new CommentsCache(articles.noPages.id, articles.noPages.siteId);
+			let article = generateArticle(0);
+			let commentsCache = new CommentsCache(article.id, article.siteId);
 
 			return commentsCache.getCommentsByPage(1).then(() => {
 				assert.fail("Should not enter 'then'.");
@@ -488,34 +444,31 @@ describe('CommentsCache', function () {
 		});
 
 
-		it('should return the comments for an existing page number (processed and ordered by recent first)', function () {
-			let commentsCache = new CommentsCache(articles.onePage.id, articles.onePage.siteId);
+		it('should return the comments for init (processed and ordered by recent first)', function () {
+			let article = generateArticle(1);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
 
 
-			let expectedComments = {
-				comments: [
-					transformLfComment(articles.onePage.comments[0].content[1], articles.onePage.comments[0].authors['author2']),
-					transformLfComment(articles.onePage.comments[0].content[0], articles.onePage.comments[0].authors['author1'])
-				],
-				lastEvent: 3,
+			let expectedComments = _.extend({
 				totalPages: 1,
 				nextPage: null
-			};
+			}, transformLfPage(article, 0));
 
 
 			return new Promise((resolve, reject) => {
-				commentsCache.getCommentsByPage(0).then((data) => {
+				commentsCache.getCommentsByPage().then((data) => {
 					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
 
 					setTimeout(() => {
 						var commentsCacheEntry = mongodbMock.findInDb('comments', {
-							_id: articles.onePage.id + '-' + articles.onePage.siteId
+							_id: article.id + '-' + article.siteId
 						});
 
 						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
 						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
-							_id: articles.onePage.id + '-' + articles.onePage.siteId,
-							lfTotalPages: 1,
+							_id: article.id + '-' + article.siteId,
+							totalPages: 1,
 							comments: {
 								page0: expectedComments
 							}
@@ -528,7 +481,9 @@ describe('CommentsCache', function () {
 		});
 
 		it('should return 404 if the page does not exist', function () {
-			let commentsCache = new CommentsCache(articles.onePage.id, articles.onePage.siteId);
+			let article = generateArticle(1);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
 
 			return commentsCache.getCommentsByPage(1).then(() => {
 				assert.fail("Should not enter 'then'.");
@@ -540,37 +495,45 @@ describe('CommentsCache', function () {
 
 
 
-		it('should combine the last 2 pages if there are 2 pages in total', function () {
-			let commentsCache = new CommentsCache(articles.twoPages.id, articles.twoPages.siteId);
+		it('should combine the last 2 pages if there are 2 pages in total for init', function () {
+			let article = generateArticle(2);
 
+			let commentsCache = new CommentsCache(article.id, article.siteId);
+
+			let commentsPage1 = transformLfPage(article, 1);
+			let commentsPage0 = transformLfPage(article, 0);
 
 			let expectedComments = {
-				comments: [
-					transformLfComment(articles.twoPages.comments[1].content[0], articles.twoPages.comments[0].authors['author1']),
-					transformLfComment(articles.twoPages.comments[0].content[1], articles.twoPages.comments[0].authors['author2']),
-					transformLfComment(articles.twoPages.comments[0].content[0], articles.twoPages.comments[0].authors['author1'])
-				],
-				lastEvent: 5,
-				totalPages: 1,
-				nextPage: null
+				totalPages: 2,
+				nextPage: null,
+				comments: [].concat(commentsPage1.comments).concat(commentsPage0.comments),
+				lastEvent: commentsPage1.lastEvent
 			};
 
 
 			return new Promise((resolve, reject) => {
-				commentsCache.getCommentsByPage(0).then((data) => {
+				commentsCache.getCommentsByPage().then((data) => {
 					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
 
 					setTimeout(() => {
 						var commentsCacheEntry = mongodbMock.findInDb('comments', {
-							_id: articles.twoPages.id + '-' + articles.twoPages.siteId
+							_id: article.id + '-' + article.siteId
 						});
 
 						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
 						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
-							_id: articles.twoPages.id + '-' + articles.twoPages.siteId,
-							lfTotalPages: 2,
+							_id: article.id + '-' + article.siteId,
+							totalPages: 2,
 							comments: {
-								page0: expectedComments
+								page1: _.extend({
+									totalPages: 2,
+									nextPage: 0
+								}, commentsPage1),
+								page0: _.extend({
+									totalPages: 2,
+									nextPage: null
+								}, commentsPage0)
+
 							}
 						}, "Comments correctly cached.");
 
@@ -580,96 +543,123 @@ describe('CommentsCache', function () {
 			});
 		});
 
-		it('should return 404 if the page does not exist', function () {
-			let commentsCache = new CommentsCache(articles.twoPages.id, articles.twoPages.siteId);
+		it('should return a single page correctly', function () {
+			let article = generateArticle(2);
 
-			return commentsCache.getCommentsByPage(1).then(() => {
-				assert.fail("Should not enter 'then'.");
-			}, (err) => {
-				assert.ok(err, "Error is returned.");
-				assert.equal(err.statusCode, 404, "Status code is correct.");
-			});
-		});
+			let commentsCache = new CommentsCache(article.id, article.siteId);
 
-
-
-		it('should combine the last 2 pages if there are 3 pages', function () {
-			let commentsCache = new CommentsCache(articles.threePages.id, articles.threePages.siteId);
-
-
-			let expectedComments = {
-				comments: [
-					transformLfComment(articles.threePages.comments[2].content[1], articles.threePages.comments[0].authors['author1']),
-					transformLfComment(articles.threePages.comments[2].content[0], articles.threePages.comments[0].authors['author1']),
-					transformLfComment(articles.threePages.comments[1].content[0], articles.threePages.comments[0].authors['author1']),
-				],
-				lastEvent: 7,
+			let expectedComments = _.extend({
 				totalPages: 2,
-				nextPage: 1
-			};
+				nextPage: 0
+			}, transformLfPage(article, 1));
 
 
-			return new Promise((resolve, reject) => {
-				commentsCache.getCommentsByPage(0).then((data) => {
-					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
-
-					setTimeout(() => {
-						var commentsCacheEntry = mongodbMock.findInDb('comments', {
-							_id: articles.threePages.id + '-' + articles.threePages.siteId
-						});
-
-						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
-						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
-							_id: articles.threePages.id + '-' + articles.threePages.siteId,
-							lfTotalPages: 3,
-							comments: {
-								page0: expectedComments
-							}
-						}, "Comments correctly cached.");
-
-						resolve();
-					}, 10);
-				}).catch(reject);
-			});
-		});
-
-		it('should return the next page but fetching the last "-2-pageNumber page"', function () {
-			let commentsCache = new CommentsCache(articles.threePages.id, articles.threePages.siteId);
-
-
-			let expectedComments = {
-				comments: [
-					transformLfComment(articles.threePages.comments[0].content[1], articles.threePages.comments[0].authors['author2']),
-					transformLfComment(articles.threePages.comments[0].content[0], articles.threePages.comments[0].authors['author1'])
-				],
-				lastEvent: 3,
-				totalPages: 2,
-				nextPage: null
-			};
-
-
-			return new Promise((resolve, reject) => {
-				commentsCache.getCommentsByPage(1).then((data) => {
-					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
-
-					setTimeout(() => {
-						var commentsCacheEntry = mongodbMock.findInDb('comments', {
-							_id: articles.threePages.id + '-' + articles.threePages.siteId
-						});
-
-						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
-						assert.deepEqual(commentsCacheEntry[0].comments.page1, expectedComments, "Comments correctly cached.");
-
-						resolve();
-					}, 10);
-				}).catch(reject);
+			return commentsCache.getCommentsByPage(1).then((data) => {
+				assert.deepEqual(data, expectedComments, "Comments returned correctly.");
 			});
 		});
 
 		it('should return 404 if the page does not exist', function () {
-			let commentsCache = new CommentsCache(articles.threePages.id, articles.threePages.siteId);
+			let article = generateArticle(2);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
 
 			return commentsCache.getCommentsByPage(2).then(() => {
+				assert.fail("Should not enter 'then'.");
+			}, (err) => {
+				assert.ok(err, "Error is returned.");
+				assert.equal(err.statusCode, 404, "Status code is correct.");
+			});
+		});
+
+
+
+		it('should combine the last 2 pages if there are 3 pages for init', function () {
+			let article = generateArticle(3);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
+
+			let commentsPage2 = transformLfPage(article, 2);
+			let commentsPage1 = transformLfPage(article, 1);
+
+			let expectedComments = {
+				totalPages: 3,
+				nextPage: 0,
+				comments: [].concat(commentsPage2.comments).concat(commentsPage1.comments),
+				lastEvent: commentsPage2.lastEvent
+			};
+
+
+			return new Promise((resolve, reject) => {
+				commentsCache.getCommentsByPage().then((data) => {
+					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
+
+					setTimeout(() => {
+						var commentsCacheEntry = mongodbMock.findInDb('comments', {
+							_id: article.id + '-' + article.siteId
+						});
+
+						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
+						assert.deepEqual(_.omit(commentsCacheEntry[0], 'expireAt'), {
+							_id: article.id + '-' + article.siteId,
+							totalPages: 3,
+							comments: {
+								page2: _.extend({
+									totalPages: 3,
+									nextPage: 1
+								}, commentsPage2),
+								page1: _.extend({
+									totalPages: 3,
+									nextPage: 0
+								}, commentsPage1)
+							}
+						}, "Comments correctly cached.");
+
+						resolve();
+					}, 10);
+				}).catch(reject);
+			});
+		});
+
+		it('should return the next page', function () {
+			let article = generateArticle(3);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
+
+			let commentsPage0 = transformLfPage(article, 0);
+
+			let expectedComments = {
+				totalPages: 3,
+				nextPage: null,
+				comments: commentsPage0.comments,
+				lastEvent: commentsPage0.lastEvent
+			};
+
+
+			return new Promise((resolve, reject) => {
+				commentsCache.getCommentsByPage(0).then((data) => {
+					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
+
+					setTimeout(() => {
+						var commentsCacheEntry = mongodbMock.findInDb('comments', {
+							_id: article.id + '-' + article.siteId
+						});
+
+						assert.equal(commentsCacheEntry.length, 1, "Cache entry created.");
+						assert.deepEqual(commentsCacheEntry[0].comments.page0, expectedComments, "Comments correctly cached.");
+
+						resolve();
+					}, 10);
+				}).catch(reject);
+			});
+		});
+
+		it('should return 404 if the page does not exist', function () {
+			let article = generateArticle(3);
+
+			let commentsCache = new CommentsCache(article.id, article.siteId);
+
+			return commentsCache.getCommentsByPage(3).then(() => {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
@@ -682,19 +672,17 @@ describe('CommentsCache', function () {
 		it('should load total pages from cache if it exists', function () {
 			let commentsCache = new CommentsCache(articles.totalPagesCached.id, articles.totalPagesCached.siteId);
 
+			let commentsPage2 = transformLfPage(articles.totalPagesCached, 2);
+			let commentsPage1 = transformLfPage(articles.totalPagesCached, 1);
 
 			let expectedComments = {
-				comments: [
-					transformLfComment(articles.totalPagesCached.comments[2].content[1], articles.totalPagesCached.comments[0].authors['author1']),
-					transformLfComment(articles.totalPagesCached.comments[2].content[0], articles.totalPagesCached.comments[0].authors['author1']),
-					transformLfComment(articles.totalPagesCached.comments[1].content[0], articles.totalPagesCached.comments[0].authors['author1']),
-				],
-				lastEvent: 7,
-				totalPages: 2,
-				nextPage: 1
+				totalPages: 3,
+				nextPage: 0,
+				comments: [].concat(commentsPage2.comments).concat(commentsPage1.comments),
+				lastEvent: commentsPage2.lastEvent
 			};
 
-			return commentsCache.getCommentsByPage(0).then((data) => {
+			return commentsCache.getCommentsByPage().then((data) => {
 				assert.deepEqual(data, expectedComments, "Comments returned correctly.");
 			});
 		});
@@ -702,7 +690,7 @@ describe('CommentsCache', function () {
 		it('should return 404 if the page does not exist', function () {
 			let commentsCache = new CommentsCache(articles.totalPagesCached.id, articles.totalPagesCached.siteId);
 
-			return commentsCache.getCommentsByPage(2).then(() => {
+			return commentsCache.getCommentsByPage(3).then(() => {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
@@ -712,7 +700,20 @@ describe('CommentsCache', function () {
 
 
 		// cached all
-		it('should load cached comments if exists', function () {
+		it('should load cached comments if exists for init', function () {
+			let commentsCache = new CommentsCache(articles.commentsCached.id, articles.commentsCached.siteId);
+
+			return commentsCache.getCommentsByPage().then((data) => {
+				assert.deepEqual(data, {
+					totalPages: articles.commentsCached.cached.totalPages,
+					nextPage: null,
+					comments: [].concat(articles.commentsCached.cached.comments.page1.comments).concat(articles.commentsCached.cached.comments.page0.comments),
+					lastEvent: articles.commentsCached.cached.comments.page1.lastEvent
+				}, "Comments returned correctly.");
+			});
+		});
+
+		it('should load cached comments if exists for a page number', function () {
 			let commentsCache = new CommentsCache(articles.commentsCached.id, articles.commentsCached.siteId);
 
 			return commentsCache.getCommentsByPage(0).then((data) => {
@@ -734,33 +735,33 @@ describe('CommentsCache', function () {
 
 
 		// cache down
-		it('should return the comments for an existing page number (processed and ordered by recent first)', function () {
+		it('should return the comments for an existing page number (processed and ordered by recent first) even if the cache is down', function () {
 			let originalMongoUri = env.mongo.uri;
 			env.mongo.uri = 'invalid';
 
+			let article = generateArticle(1);
 
-			let commentsCache = new CommentsCache(articles.onePage2.id, articles.onePage2.siteId);
+			let commentsCache = new CommentsCache(article.id, article.siteId);
+
+			let commentsPage0 = transformLfPage(article, 0);
 
 			let expectedComments = {
-				comments: [
-					transformLfComment(articles.onePage2.comments[0].content[1], articles.onePage2.comments[0].authors['author2']),
-					transformLfComment(articles.onePage2.comments[0].content[0], articles.onePage2.comments[0].authors['author1'])
-				],
-				lastEvent: 3,
+				comments: commentsPage0.comments,
+				lastEvent: commentsPage0.lastEvent,
 				totalPages: 1,
 				nextPage: null
 			};
 
 
 			return new Promise((resolve, reject) => {
-				commentsCache.getCommentsByPage(0).then((data) => {
+				commentsCache.getCommentsByPage().then((data) => {
 					env.mongo.uri = originalMongoUri;
 
 					assert.deepEqual(data, expectedComments, "Comments returned correctly.");
 
 					setTimeout(() => {
 						var commentsCacheEntry = mongodbMock.findInDb('comments', {
-							_id: articles.onePage2.id + '-' + articles.onePage2.siteId
+							_id: article.id + '-' + article.siteId
 						});
 
 						assert.equal(commentsCacheEntry.length, 0, "Cache entry not created.");

@@ -29,7 +29,6 @@ const CommentsCache = function (articleId, siteId) {
 				return;
 			}
 
-
 			storeEvents.once('storedDataFetched_resolve', function (data) {
 				resolve(data);
 			});
@@ -73,14 +72,17 @@ const CommentsCache = function (articleId, siteId) {
 					}).catch((err) => {
 						consoleLogger.warn(combinedId, 'error retrieving the cache', err);
 
-						fetchingStoreInProgress = false;
 						rejectInProgress(err);
 					});
 				});
 
 				promiseInProgress.then((data) => {
+					fetchingStoreInProgress = false;
+
 					storeEvents.emit('storedDataFetched_resolve', data);
 				}).catch((err) => {
+					fetchingStoreInProgress = false;
+
 					storeEvents.emit('storedDataFetched_reject', err);
 				});
 			}
@@ -173,11 +175,30 @@ const CommentsCache = function (articleId, siteId) {
 
 
 	const getTotalPages = function () {
-		return livefyreService.getCollectionInfoPlus({
-			articleId: articleId,
-			siteId: siteId
-		}).then((livefyreCollectionDetails) => {
-			return livefyreCollectionDetails.collectionSettings.archiveInfo.nPages;
+		return new Promise((resolve, reject) => {
+			getStoredData().then((storedData) => {
+				if (storedData && storedData.totalPages) {
+					resolve(storedData.totalPages);
+				} else {
+					livefyreService.getCollectionInfoPlus({
+						articleId: articleId,
+						siteId: siteId
+					}).then((livefyreCollectionDetails) => {
+						upsertStoredData({
+							totalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages
+						});
+
+						resolve(livefyreCollectionDetails.collectionSettings.archiveInfo.nPages);
+					}).catch(reject);
+				}
+			}).catch(() => {
+				livefyreService.getCollectionInfoPlus({
+					articleId: articleId,
+					siteId: siteId
+				}).then((livefyreCollectionDetails) => {
+					resolve(livefyreCollectionDetails.collectionSettings.archiveInfo.nPages);
+				}).catch(reject);
+			});
 		});
 	};
 
@@ -218,103 +239,63 @@ const CommentsCache = function (articleId, siteId) {
 
 
 	const getCommentsByPage = function (config) {
-		const promise = new Promise((resolve, reject) => {
-			let totalPages = (config.lfTotalPages > 1 ? config.lfTotalPages - 1 : config.lfTotalPages);
-
-			if (config.pageNumber <= config.lfTotalPages) {
-				if (config.lfTotalPages === 0) {
-					resolve({
-						comments: [],
-						lastEvent: 0,
-						totalPages: 0,
-						nextPage: null
-					});
-				} else {
-					if (config.pageNumber === 0 && config.lfTotalPages > 1) {
-						async.parallel({
-							pageLast: (callback) => {
-								livefyreService.getCommentsByPage({
-									pageNumber: config.lfTotalPages - 1,
-									articleId: articleId,
-									siteId: siteId
-								}).then(preprocessComments).then((commentsProcessed) => {
-									callback(null, commentsProcessed);
-								}).catch((err) => {
-									callback(err);
-								});
-							},
-							pageBeforeLast: (callback) => {
-								livefyreService.getCommentsByPage({
-									pageNumber: config.lfTotalPages - 2,
-									articleId: articleId,
-									siteId: siteId
-								}).then(preprocessComments).then((commentsProcessed) => {
-									callback(null, commentsProcessed);
-								}).catch((err) => {
-									callback(err);
-								});
-							}
-						}, function (err, results) {
-							if (err) {
-								reject(err);
-								return;
-							}
-
-							resolve({
-								comments: [].concat(results.pageLast.comments).concat(results.pageBeforeLast.comments),
-								lastEvent: results.pageLast.lastEvent > results.pageBeforeLast.lastEvent ? results.pageLast.lastEvent : results.pageBeforeLast.lastEvent,
-								totalPages: totalPages,
-								nextPage: (config.pageNumber >= totalPages-1 ? null : config.pageNumber + 1)
-							});
-						});
-					} else {
-						let pageNumber;
-						if (config.pageNumber === 0 && config.lfTotalPages === 1) {
-							pageNumber = 0;
+		return new Promise((resolve, reject) => {
+			if (config.totalPages === 0 && config.pageNumber === 0) {
+				resolve({
+					comments: [],
+					lastEvent: 0,
+					totalPages: 0,
+					nextPage: null
+				});
+			} else {
+				if (config.pageNumber < config.totalPages) {
+					getStoredData().then((storedData) => {
+						if (storedData && storedData.comments && storedData.comments['page' + config.pageNumber]) {
+							resolve(storedData.comments['page' + config.pageNumber]);
 						} else {
-							pageNumber = config.lfTotalPages - config.pageNumber - 2;
-						}
-
-						if (pageNumber >= 0) {
 							livefyreService.getCommentsByPage({
-								pageNumber: pageNumber,
+								pageNumber: config.pageNumber,
 								articleId: articleId,
 								siteId: siteId
 							}).then((response) => {
-								resolve(_.extend(preprocessComments(response), {
-									totalPages: totalPages,
-									nextPage: (config.pageNumber >= totalPages-1 ? null : config.pageNumber + 1)
-								}));
+								let commentData = _.extend(preprocessComments(response), {
+									totalPages: config.totalPages,
+									nextPage: (config.pageNumber === 0 ? null : config.pageNumber - 1)
+								});
+
+								let dataToUpsert = {};
+								dataToUpsert['comments.page' + config.pageNumber] = commentData;
+								upsertStoredData(dataToUpsert);
+
+								resolve(commentData);
 							}).catch(reject);
-						} else {
-							reject({
-								statusCode: 404,
-								error: new Error("Page does not exist.")
-							});
 						}
-					}
+					}).catch(() => {
+						livefyreService.getCommentsByPage({
+							pageNumber: config.pageNumber,
+							articleId: articleId,
+							siteId: siteId
+						}).then((response) => {
+							resolve(_.extend(preprocessComments(response), {
+								totalPages: config.totalPages,
+								nextPage: (config.pageNumber === 0 ? null : config.pageNumber - 1)
+							}));
+						}).catch(reject);
+					});
+				} else {
+					reject({
+						statusCode: 404,
+						error: new Error("Page does not exist.")
+					});
 				}
-			} else {
-				reject({
-					statusCode: 404,
-					error: new Error("Page does not exist.")
-				});
 			}
 		});
-
-		return promise;
 	};
 
 
 	this.getCommentsByPage = function (pageNumber) {
-		const promise = new Promise((resolve, reject) => {
-			if (typeof pageNumber !== 'number') {
-				reject({
-					statusCode: 400,
-					error: new Error("Page number should be numeric.")
-				});
-				return;
-			}
+		return new Promise((resolve, reject) => {
+			let fetchInit = false;
 
 			if (!articleId || !siteId) {
 				reject({
@@ -324,53 +305,51 @@ const CommentsCache = function (articleId, siteId) {
 				return;
 			}
 
-			getStoredData().then((storedData) => {
-				if (storedData && storedData.comments && storedData.comments['page' + pageNumber]) {
-					resolve(storedData.comments['page' + pageNumber]);
-				} else {
-					if (storedData && storedData.lfTotalPages) {
+			if (typeof pageNumber !== 'number') {
+				fetchInit = true;
+			}
+
+
+			getTotalPages(storedData).then((totalPages) => {
+				if (fetchInit) {
+					if (totalPages <= 1) {
 						getCommentsByPage({
-							lfTotalPages: storedData.lfTotalPages,
-							pageNumber: pageNumber
+							totalPages: totalPages,
+							pageNumber: 0
 						}).then((commentsData) => {
 							resolve(commentsData);
-
-							let dataToUpsert = {};
-							dataToUpsert['comments.page' + pageNumber] = commentsData;
-							upsertStoredData(dataToUpsert);
 						}).catch(reject);
 					} else {
-						getTotalPages().then((lfTotalPages) => {
-							upsertStoredData({
-								lfTotalPages: lfTotalPages
-							});
-
+						Promise.all([
 							getCommentsByPage({
-								lfTotalPages: lfTotalPages,
-								pageNumber: pageNumber
-							}).then((commentsData) => {
-								resolve(commentsData);
+								totalPages: totalPages,
+								pageNumber: totalPages - 1
+							}),
+							getCommentsByPage({
+								totalPages: totalPages,
+								pageNumber: totalPages - 2
+							})
+						]).then((results) => {
+							let commentData = {
+								comments: [].concat(results[0].comments).concat(results[1].comments),
+								lastEvent: results[0].lastEvent,
+								totalPages: totalPages,
+								nextPage: results[1].nextPage
+							};
 
-								let dataToUpsert = {};
-								dataToUpsert['comments.page' + pageNumber] = commentsData;
-								upsertStoredData(dataToUpsert);
-							}).catch(reject);
+							resolve(commentData);
 						}).catch(reject);
 					}
-				}
-			}).catch(() => {
-				getTotalPages().then((lfTotalPages) => {
+				} else {
 					getCommentsByPage({
-						lfTotalPages: lfTotalPages,
+						totalPages: totalPages,
 						pageNumber: pageNumber
 					}).then((commentsData) => {
 						resolve(commentsData);
 					}).catch(reject);
-				}).catch(reject);
-			});
+				}
+			}).catch(reject);
 		});
-
-		return promise;
 	};
 
 
