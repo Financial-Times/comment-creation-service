@@ -7,7 +7,6 @@ const mongoSanitize = require('mongo-sanitize');
 const EventEmitter = require('events');
 const env = require('../../env');
 const _ = require('lodash');
-const async = require('async');
 
 const CommentsCache = function (articleId, siteId) {
 	let storedData = null;
