@@ -38,7 +38,7 @@ exports.getComments = function (req, res) {
 			sessionId = req.query.sessionId;
 		}
 
-		const pageNumber = req.query.pageNumber ? parseInt(req.query.pageNumber) || null : null;
+		const pageNumber = req.query.pageNumber && typeof parseInt(req.query.pageNumber, 10) === 'number' ? parseInt(req.query.pageNumber) : null;
 
 		async.parallel({
 			collection: (callback) => {
