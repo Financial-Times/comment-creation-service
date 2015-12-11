@@ -3,6 +3,16 @@
 const needle = require('needle');
 const consoleLogger = require('../utils/consoleLogger');
 const env = require('../../env');
+const Timer = require('../utils/Timer');
+
+const endTimer = function (timer, serviceName, id) {
+	let elapsedTime = timer.getElapsedTime();
+	if (elapsedTime > 5000) {
+		consoleLogger.warn(id ? id : '', 'suds.'+ serviceName +': high response time', elapsedTime + 'ms');
+	} else {
+		consoleLogger.info(id ? id : '', 'suds.'+ serviceName +': response time', elapsedTime + 'ms');
+	}
+};
 
 
 exports.getCollectionDetails = function (config) {
@@ -32,7 +42,12 @@ exports.getCollectionDetails = function (config) {
 			url += '&stream_type=' + encodeURIComponent(config.streamType);
 		}
 
+
+		let timer = new Timer();
+
 		needle.get(url, function (err, response) {
+			endTimer(timer, 'getCollectionDetails', config.articleId);
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				if (err) {
 					consoleLogger.warn('suds.getAuth error', err);
@@ -62,7 +77,11 @@ exports.getAuth = function (sessionId) {
 			return;
 		}
 
+		let timer = new Timer();
+
 		needle.get(env.suds.api.getAuth + '?sessionId=' + sessionId, function (err, response) {
+			endTimer(timer, 'getAuth');
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				if (err) {
 					consoleLogger.warn('suds.getAuth error', err);

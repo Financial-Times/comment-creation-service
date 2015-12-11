@@ -7,6 +7,7 @@ const mongoSanitize = require('mongo-sanitize');
 const EventEmitter = require('events');
 const env = require('../../env');
 const _ = require('lodash');
+const Timer = require('../utils/Timer');
 
 const CommentsCache = function (articleId, siteId) {
 	let storedData = null;
@@ -39,6 +40,8 @@ const CommentsCache = function (articleId, siteId) {
 
 			if (!fetchingStoreInProgress) {
 				fetchingStoreInProgress = true;
+
+				let timer = new Timer();
 
 				const promiseInProgress = new Promise((resolveInProgress, rejectInProgress) => {
 					db.getConnection(env.mongo.uri).then((connection) => {
@@ -76,13 +79,18 @@ const CommentsCache = function (articleId, siteId) {
 				});
 
 				promiseInProgress.then((data) => {
-					fetchingStoreInProgress = false;
-
 					storeEvents.emit('storedDataFetched_resolve', data);
 				}).catch((err) => {
+					storeEvents.emit('storedDataFetched_reject', err);
+				}).then(() => {
 					fetchingStoreInProgress = false;
 
-					storeEvents.emit('storedDataFetched_reject', err);
+					let elapsedTime = timer.getElapsedTime();
+					if (elapsedTime > 5000) {
+						consoleLogger.warn('CollectionDataStore.getStoredData: high response time', elapsedTime + 'ms');
+					} else {
+						consoleLogger.info('CollectionDataStore.getStoredData: response time', elapsedTime + 'ms');
+					}
 				});
 			}
 		});

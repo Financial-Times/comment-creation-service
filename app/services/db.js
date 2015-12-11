@@ -3,6 +3,19 @@
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
 const consoleLogger = require('../utils/consoleLogger');
+const Timer = require('../utils/Timer');
+
+const endTimer = function (timer, uuid) {
+	let elapsedTime = timer.getElapsedTime();
+	if (elapsedTime > 5000) {
+		consoleLogger.warn(uuid, 'db.getConnection: high response time', elapsedTime + 'ms');
+	} else {
+		consoleLogger.info(uuid, 'db.getConnection: response time', elapsedTime + 'ms');
+	}
+};
+
+
+
 
 let connections = {};
 
@@ -14,7 +27,11 @@ function getConnection (uri) {
 			return;
 		}
 
+		let timer = new Timer();
+
 		MongoClient.connect(uri, function(err, dbConn) {
+			endTimer(timer);
+
 			if (err) {
 				consoleLogger.warn('Mongo connection failed', err);
 

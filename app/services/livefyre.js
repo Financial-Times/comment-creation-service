@@ -3,6 +3,16 @@
 const needle = require('needle');
 const env = require('../../env');
 const consoleLogger = require('../utils/consoleLogger');
+const Timer = require('../utils/Timer');
+
+const endTimer = function (timer, serviceName, id) {
+	let elapsedTime = timer.getElapsedTime();
+	if (elapsedTime > 5000) {
+		consoleLogger.warn(id ? id : '', 'livefyre.'+ serviceName +': high response time', elapsedTime + 'ms');
+	} else {
+		consoleLogger.info(id ? id : '', 'livefyre.'+ serviceName +': response time', elapsedTime + 'ms');
+	}
+};
 
 exports.createCollection = function (config) {
 	const promise = new Promise((resolve, reject) => {
@@ -25,7 +35,11 @@ exports.createCollection = function (config) {
 			postData.checksum = config.checksum;
 		}
 
+		let timer = new Timer();
+
 		needle.post(url, postData, {json: true}, (err, response) => {
+			endTimer(timer, 'createCollection');
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				reject({
 					error: err,
@@ -63,7 +77,11 @@ exports.getCollectionInfoPlus = function (config) {
 		url = url.replace(/\{siteId\}/g, config.siteId);
 		url = url.replace(/\{articleIdBase64\}/g, new Buffer(config.articleId).toString('base64'));
 
+		let timer = new Timer();
+
 		needle.get(url, (err, response) => {
+			endTimer(timer, 'getCollectionInfoPlus', config.articleId);
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				reject({
 					error: err,
@@ -107,7 +125,11 @@ exports.getCommentsByPage = function (config) {
 		url = url.replace(/\{articleIdBase64\}/g, new Buffer(config.articleId).toString('base64'));
 		url = url.replace(/\{pageNumber\}/g, config.pageNumber);
 
+		let timer = new Timer();
+
 		needle.get(url, (err, response) => {
+			endTimer(timer, 'getCommentsByPage', config.articleId);
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				reject({
 					error: err,
@@ -149,9 +171,13 @@ exports.unfollowCollection = function (config) {
 		url = url.replace(/\{networkName\}/g, env.livefyre.network.name);
 		url = url.replace(/\{collectionId\}/g, config.collectionId);
 
+		let timer = new Timer();
+
 		needle.post(url, {
 			lftoken: config.token
 		}, (err, response) => {
+			endTimer(timer, 'unfollowCollection', config.collectionId);
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				reject({
 					error: err,
@@ -194,10 +220,14 @@ exports.postComment = function (config) {
 		url = url.replace(/\{networkName\}/g, env.livefyre.network.name);
 		url = url.replace(/\{collectionId\}/g, config.collectionId);
 
+		let timer = new Timer();
+
 		needle.post(url, {
 			lftoken: config.token,
 			body: config.commentBody
 		}, (err, response) => {
+			endTimer(timer, 'postComment', config.collectionId);
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				reject({
 					error: err,
@@ -240,10 +270,14 @@ exports.deleteComment = function (config) {
 		url = url.replace(/\{networkName\}/g, env.livefyre.network.name);
 		url = url.replace(/\{commentId\}/g, config.commentId);
 
+		let timer = new Timer();
+
 		needle.post(url, {
 			lftoken: config.token,
 			collection_id: config.collectionId
 		}, (err, response) => {
+			endTimer(timer, 'deleteComment', config.commentId);
+
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				reject({
 					error: err,
