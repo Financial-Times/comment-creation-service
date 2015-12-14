@@ -342,7 +342,16 @@ exports.deleteComment = function (req, res) {
 						invalidSession: true
 					});
 				}
-			}).catch(reject);
+			}).catch((err) => {
+				if (err.statusCode === 401) {
+					reject({
+						statusCode: 401,
+						invalidSession: true
+					});
+				} else {
+					reject(err);
+				}
+			});
 		} else {
 			reject({
 				statusCode: 401,
