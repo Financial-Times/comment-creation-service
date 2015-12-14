@@ -172,7 +172,7 @@ function sendActionSuccessResponse (req, res, data) {
 	res.jsonp(_.extend(data, {
 		success: true,
 		invalidSession: false,
-		status: ok
+		status: "ok"
 	}));
 }
 
