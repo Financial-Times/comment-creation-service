@@ -235,6 +235,18 @@ exports.postComment = function (config) {
 			endTimer(timer, 'postComment', config.collectionId);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
+				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain') {
+					reject({
+						error: err,
+						responseBody: response ? _.extend(response.body, {
+							code: 404,
+							msg: 'Collection not found'
+						}) : null,
+						statusCode: 404
+					});
+					return;
+				}
+
 				reject({
 					error: err,
 					responseBody: response ? response.body : null,
@@ -286,7 +298,7 @@ exports.deleteComment = function (config) {
 			endTimer(timer, 'deleteComment', config.commentId);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
-				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain'){
+				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain') {
 					reject({
 						error: err,
 						responseBody: response ? _.extend(response.body, {
