@@ -87,9 +87,9 @@ var CollectionDataStore = function (articleId) {
 
 					let elapsedTime = timer.getElapsedTime();
 					if (elapsedTime > 5000) {
-						consoleLogger.warn('CollectionDataStore.getStoredData: high response time', elapsedTime + 'ms');
+						consoleLogger.warn('CollectionDataStore.getStoredData: service high response time', elapsedTime + 'ms');
 					} else {
-						consoleLogger.info('CollectionDataStore.getStoredData: response time', elapsedTime + 'ms');
+						consoleLogger.info('CollectionDataStore.getStoredData: service response time', elapsedTime + 'ms');
 					}
 				});
 			}
