@@ -206,8 +206,8 @@ function sendActionFailResponse(req, res, err) {
 
 	if (err.responseBody && err.responseBody.msg) {
 		response.errorMessage = err.responseBody.msg;
-	} else if (err.error && err.error.message) {
-		response.errorMessage = err.error.message;
+	} else {
+		response.errorMessage = 'System is temporarily unavailable, please try again later.';
 	}
 
 	if (err.invalidSession === true) {
