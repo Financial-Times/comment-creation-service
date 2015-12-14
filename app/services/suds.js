@@ -20,7 +20,8 @@ exports.getCollectionDetails = function (config) {
 		if (!config || !config.articleId || !config.title || !config.url) {
 			reject({
 				statusCode: 400,
-				error: new Error('"articleId", "url" and "title" should be provided.')
+				error: new Error('"articleId", "url" and "title" should be provided.'),
+				safeMessage: true
 			});
 			return;
 		}
@@ -72,7 +73,8 @@ exports.getAuth = function (sessionId) {
 		if (!sessionId) {
 			reject({
 				statusCode: 400,
-				error: new Error('"sessionId" should be provided.')
+				error: new Error('"sessionId" should be provided.'),
+				safeMessage: true
 			});
 			return;
 		}

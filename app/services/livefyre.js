@@ -19,7 +19,8 @@ exports.createCollection = function (config) {
 		if (!config || typeof config !== 'object' || !config.collectionMeta || !config.siteId) {
 			reject({
 				statusCode: 400,
-				error: new Error("'collectionMeta' and 'siteId' should be provided.")
+				error: new Error("'collectionMeta' and 'siteId' should be provided."),
+				safeMessage: true
 			});
 			return;
 		}
@@ -67,7 +68,8 @@ exports.getCollectionInfoPlus = function (config) {
 		if (!config || typeof config !== 'object' || !config.articleId || !config.siteId) {
 			reject({
 				statusCode: 400,
-				error: new Error("'articleId' and 'siteId' should be provided.")
+				error: new Error("'articleId' and 'siteId' should be provided."),
+				safeMessage: true
 			});
 			return;
 		}
@@ -114,7 +116,8 @@ exports.getCommentsByPage = function (config) {
 		if (!config || typeof config !== 'object' || !config.articleId || !config.siteId || !config.hasOwnProperty('pageNumber')) {
 			reject({
 				statusCode: 400,
-				error: new Error("'articleId', 'siteId', and 'pageNumber' should be provided.")
+				error: new Error("'articleId', 'siteId', and 'pageNumber' should be provided."),
+				safeMessage: true
 			});
 			return;
 		}
@@ -162,7 +165,8 @@ exports.unfollowCollection = function (config) {
 		if (!config || typeof config !== 'object' || !config.collectionId || !config.token) {
 			reject({
 				statusCode: 400,
-				error: new Error("'collectionId' and 'token' should be provided.")
+				error: new Error("'collectionId' and 'token' should be provided."),
+				safeMessage: true
 			});
 			return;
 		}
@@ -211,7 +215,8 @@ exports.postComment = function (config) {
 		if (!config || typeof config !== 'object' || !config.collectionId || !config.token || !config.commentBody) {
 			reject({
 				statusCode: 400,
-				error: new Error("'collectionId', 'commentBody' and 'token' should be provided.")
+				error: new Error("'collectionId', 'commentBody' and 'token' should be provided."),
+				safeMessage: true
 			});
 			return;
 		}
@@ -261,7 +266,8 @@ exports.deleteComment = function (config) {
 		if (!config || typeof config !== 'object' || !config.collectionId || !config.token || !config.commentId) {
 			reject({
 				statusCode: 400,
-				error: new Error("'collectionId', 'commentId' and 'token' should be provided.")
+				error: new Error("'collectionId', 'commentId' and 'token' should be provided."),
+				safeMessage: true
 			});
 			return;
 		}

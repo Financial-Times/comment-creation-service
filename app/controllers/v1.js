@@ -206,8 +206,12 @@ function sendActionFailResponse(req, res, err) {
 
 	if (err.responseBody && err.responseBody.msg) {
 		response.errorMessage = err.responseBody.msg;
+	} else if (err.error && err.error.message && err.safeMessage) {
+		response.errorMessage = err.error.message;
 	} else if (statusCode === 401) {
 		response.errorMessage = "User session is not valid.";
+	} else if (statusCode === 400) {
+		response.errorMessage = "Parameters missing or invalid.";
 	} else if (statusCode === 503) {
 		response.errorMessage = 'System is temporarily unavailable, please try again later.';
 	}
@@ -227,7 +231,18 @@ exports.postComment = function (req, res) {
 		if (!req.query.collectionId || !req.query.commentBody) {
 			reject({
 				statusCode: 400,
-				error: new Error('"collectionId" and "commentBody" should be provided.')
+				error: new Error('"collectionId" and "commentBody" should be provided.'),
+				safeMessage: true
+			});
+			return;
+		}
+
+		let collectionId = parseInt(req.query.collectionId, 10);
+		if (typeof collectionId !== 'number' || isNaN(collectionId)) {
+			reject({
+				statusCode: 400,
+				error: new Error('"collectionId" should be a number.'),
+				safeMessage: true
 			});
 			return;
 		}
@@ -246,18 +261,18 @@ exports.postComment = function (req, res) {
 				if (auth.token) {
 					if (auth.settings && (auth.settings.emailautofollow === "on" || auth.settings.emailautofollow === true)) {
 						livefyreService.unfollowCollection({
-							collectionId: req.query.collectionId,
+							collectionId: collectionId,
 							token: auth.token
 						}).then(() => {
 							postComment({
-								collectionId: req.query.collectionId,
+								collectionId: collectionId,
 								commentBody: req.query.commentBody,
 								token: auth.token
 							}).then(resolve).catch(reject);
 						}).catch(reject);
 					} else {
 						postComment({
-							collectionId: req.query.collectionId,
+							collectionId: collectionId,
 							commentBody: req.query.commentBody,
 							token: auth.token
 						}).then(resolve).catch(reject);
@@ -315,7 +330,28 @@ exports.deleteComment = function (req, res) {
 		if (!req.query.collectionId || !req.query.commentId) {
 			reject({
 				statusCode: 400,
-				error: new Error('"collectionId" and "commentId" should be provided.')
+				error: new Error('"collectionId" and "commentId" should be provided.'),
+				safeMessage: true
+			});
+			return;
+		}
+
+		let collectionId = parseInt(req.query.collectionId, 10);
+		if (typeof collectionId !== 'number' || isNaN(collectionId)) {
+			reject({
+				statusCode: 400,
+				error: new Error('"collectionId" should be a number.'),
+				safeMessage: true
+			});
+			return;
+		}
+
+		let commentId = parseInt(req.query.commentId, 10);
+		if (typeof commentId !== 'number' || isNaN(commentId)) {
+			reject({
+				statusCode: 400,
+				error: new Error('"commentId" should be a number.'),
+				safeMessage: true
 			});
 			return;
 		}
@@ -332,8 +368,8 @@ exports.deleteComment = function (req, res) {
 			sudsService.getAuth(sessionId).then((auth) => {
 				if (auth.token) {
 					deleteComment({
-						collectionId: req.query.collectionId,
-						commentId: req.query.commentId,
+						collectionId: collectionId,
+						commentId: commentId,
 						token: auth.token
 					}).then(resolve).catch(reject);
 				} else {
