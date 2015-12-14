@@ -5,12 +5,12 @@ const MongoClient = mongodb.MongoClient;
 const consoleLogger = require('../utils/consoleLogger');
 const Timer = require('../utils/Timer');
 
-const endTimer = function (timer, uuid) {
+const endTimer = function (timer) {
 	let elapsedTime = timer.getElapsedTime();
 	if (elapsedTime > 5000) {
-		consoleLogger.warn(uuid, 'db.getConnection: service high response time', elapsedTime + 'ms');
+		consoleLogger.warn('db.getConnection: service high response time', elapsedTime + 'ms');
 	} else {
-		consoleLogger.info(uuid, 'db.getConnection: service response time', elapsedTime + 'ms');
+		consoleLogger.info('db.getConnection: service response time', elapsedTime + 'ms');
 	}
 };
 
