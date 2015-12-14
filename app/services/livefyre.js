@@ -4,6 +4,7 @@ const needle = require('needle');
 const env = require('../../env');
 const consoleLogger = require('../utils/consoleLogger');
 const Timer = require('../utils/Timer');
+const _ = require('lodash');
 
 const endTimer = function (timer, serviceName, id) {
 	let elapsedTime = timer.getElapsedTime();
@@ -285,6 +286,18 @@ exports.deleteComment = function (config) {
 			endTimer(timer, 'deleteComment', config.commentId);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
+				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain'){
+					reject({
+						error: err,
+						responseBody: response ? _.extend(response.body, {
+							code: 404,
+							msg: 'Collection not found'
+						}) : null,
+						statusCode: 404
+					});
+					return;
+				}
+
 				reject({
 					error: err,
 					responseBody: response ? response.body : null,

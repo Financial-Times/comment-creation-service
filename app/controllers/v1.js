@@ -171,7 +171,8 @@ const postComment = function (config) {
 function sendActionSuccessResponse (req, res, data) {
 	res.jsonp(_.extend(data, {
 		success: true,
-		invalidSession: false
+		invalidSession: false,
+		status: ok
 	}));
 }
 
@@ -184,7 +185,8 @@ function sendActionFailResponse(req, res, err) {
 	}
 
 	var response = {
-		success: false
+		success: false,
+		status: "error"
 	};
 
 	let statusCode;
@@ -192,10 +194,6 @@ function sendActionFailResponse(req, res, err) {
 		statusCode = err.statusCode;
 	} else {
 		statusCode = 503;
-	}
-
-	if (err.responseBody && err.responseBody.status) {
-		response.status = err.responseBody.status;
 	}
 
 	if (err.responseBody && err.responseBody.code) {
