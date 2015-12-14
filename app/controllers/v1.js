@@ -235,6 +235,15 @@ exports.postComment = function (req, res) {
 			return;
 		}
 
+		if (req.query.commentBody.length > 2000) {
+			reject({
+				statusCode: 400,
+				error: new Error("commentBody too long. The maximum length is 2000 characters."),
+				safeMessage: true
+			});
+			return;
+		}
+
 		let collectionId = parseInt(req.query.collectionId, 10);
 		if (typeof collectionId !== 'number' || isNaN(collectionId)) {
 			reject({
