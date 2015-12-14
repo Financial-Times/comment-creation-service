@@ -206,7 +206,9 @@ function sendActionFailResponse(req, res, err) {
 
 	if (err.responseBody && err.responseBody.msg) {
 		response.errorMessage = err.responseBody.msg;
-	} else {
+	} else if (statusCode === 401) {
+		response.errorMessage = "User session is not valid.";
+	} else if (statusCode === 503) {
 		response.errorMessage = 'System is temporarily unavailable, please try again later.';
 	}
 
