@@ -266,24 +266,20 @@ exports.postComment = function (req, res) {
 		if (sessionId) {
 			sudsService.getAuth(sessionId).then((auth) => {
 				if (auth.token) {
-					if (auth.settings && (auth.settings.emailautofollow === "on" || auth.settings.emailautofollow === true)) {
-						livefyreService.unfollowCollection({
-							collectionId: collectionId,
-							token: auth.token
-						}).then(() => {
-							postComment({
+					postComment({
+						collectionId: collectionId,
+						commentBody: req.query.commentBody,
+						token: auth.token
+					}).then((postData) => {
+						resolve(postData);
+
+						if (auth.settings && (auth.settings.emailautofollow === "on" || auth.settings.emailautofollow === true)) {
+							livefyreService.unfollowCollection({
 								collectionId: collectionId,
-								commentBody: req.query.commentBody,
 								token: auth.token
-							}).then(resolve).catch(reject);
-						}).catch(reject);
-					} else {
-						postComment({
-							collectionId: collectionId,
-							commentBody: req.query.commentBody,
-							token: auth.token
-						}).then(resolve).catch(reject);
-					}
+							});
+						}
+					}).catch(reject);
 				} else {
 					reject({
 						statusCode: 401,
