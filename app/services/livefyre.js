@@ -6,12 +6,12 @@ const consoleLogger = require('../utils/consoleLogger');
 const Timer = require('../utils/Timer');
 const _ = require('lodash');
 
-const endTimer = function (timer, serviceName, id) {
+const endTimer = function (timer, serviceName, url) {
 	let elapsedTime = timer.getElapsedTime();
 	if (elapsedTime > 5000) {
-		consoleLogger.warn(id ? id : '', 'livefyre.'+ serviceName +': service high response time', elapsedTime + 'ms');
+		consoleLogger.warn('livefyre.'+ serviceName +': service high response time', elapsedTime + 'ms', url);
 	} else {
-		consoleLogger.info(id ? id : '', 'livefyre.'+ serviceName +': service response time', elapsedTime + 'ms');
+		consoleLogger.info('livefyre.'+ serviceName +': service response time', elapsedTime + 'ms', url);
 	}
 };
 
@@ -40,7 +40,7 @@ exports.createCollection = function (config) {
 		let timer = new Timer();
 
 		needle.post(url, postData, {json: true}, (err, response) => {
-			endTimer(timer, 'createCollection');
+			endTimer(timer, 'createCollection', url);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				reject({
@@ -83,7 +83,7 @@ exports.getCollectionInfoPlus = function (config) {
 		let timer = new Timer();
 
 		needle.get(url, (err, response) => {
-			endTimer(timer, 'getCollectionInfoPlus', config.articleId);
+			endTimer(timer, 'getCollectionInfoPlus', url);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
 				reject({
@@ -132,7 +132,7 @@ exports.getCommentsByPage = function (config) {
 		let timer = new Timer();
 
 		needle.get(url, (err, response) => {
-			endTimer(timer, 'getCommentsByPage', config.articleId);
+			endTimer(timer, 'getCommentsByPage', url);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				reject({
@@ -181,7 +181,7 @@ exports.unfollowCollection = function (config) {
 		needle.post(url, {
 			lftoken: config.token
 		}, (err, response) => {
-			endTimer(timer, 'unfollowCollection', config.collectionId);
+			endTimer(timer, 'unfollowCollection', url);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				reject({
@@ -232,7 +232,7 @@ exports.postComment = function (config) {
 			lftoken: config.token,
 			body: config.commentBody
 		}, (err, response) => {
-			endTimer(timer, 'postComment', config.collectionId);
+			endTimer(timer, 'postComment', url);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain') {
@@ -295,7 +295,7 @@ exports.deleteComment = function (config) {
 			lftoken: config.token,
 			collection_id: config.collectionId
 		}, (err, response) => {
-			endTimer(timer, 'deleteComment', config.commentId);
+			endTimer(timer, 'deleteComment', url);
 
 			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
 				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain') {
