@@ -48,7 +48,11 @@ function getConnection (uri) {
 
 			let timer = new Timer();
 
-			MongoClient.connect(uri, function(err, dbConn) {
+			MongoClient.connect(uri, {
+				db: {
+					bufferMaxEntries: 0
+				}
+			}, function(err, dbConn) {
 				endTimer(timer);
 
 				if (err) {
