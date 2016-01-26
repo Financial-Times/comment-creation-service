@@ -4,6 +4,7 @@ const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
 const consoleLogger = require('../utils/consoleLogger');
 const Timer = require('../utils/Timer');
+const EventEmitter = require('events');
 
 const endTimer = function (timer) {
 	let elapsedTime = timer.getElapsedTime();
@@ -14,10 +15,9 @@ const endTimer = function (timer) {
 	}
 };
 
-
-
-
 let connections = {};
+const evts = new EventEmitter();
+let connectionInProgress = {};
 
 
 function getConnection (uri) {
@@ -27,45 +27,42 @@ function getConnection (uri) {
 			return;
 		}
 
-		let timer = new Timer();
 
-		MongoClient.connect(uri, function(err, dbConn) {
-			endTimer(timer);
+		let eventHandled = false;
+		evts.once('complete', function (err, conn) {
+			if (!eventHandled) {
+				eventHandled = true;
+				connectionInProgress[uri] = false;
 
-			if (err) {
-				consoleLogger.warn('Mongo connection failed', err);
-
-				reject({
-					statusCode: 503,
-					error: err
-				});
-				return;
-			}
-
-			dbConn.on('close', function() {
-				consoleLogger.warn('Mongo connection lost', err);
-
-				connections[uri] = null;
-
-				if (this._callBackStore) {
-					for(var key in this._callBackStore._notReplied) {
-						if (this._callBackStore._notReplied.hasOwnProperty(key)) {
-							this._callHandler(key, null, 'Connection Closed!');
-						}
-					}
+				if (err) {
+					reject(err);
+				} else {
+					resolve(conn);
 				}
-			});
-
-			connections[uri] = dbConn;
-			resolve(dbConn);
+			}
 		});
 
-		setTimeout(function () {
-			reject({
-				statusCode: 503,
-				error: new Error("Connection timeout")
+
+		if (!connectionInProgress[uri]) {
+			connectionInProgress[uri] = true;
+
+			let timer = new Timer();
+
+			MongoClient.connect(uri, function(err, dbConn) {
+				endTimer(timer);
+
+				if (err) {
+					consoleLogger.warn('Mongo connection failed', err);
+
+					evts.emit('complete', err);
+
+					return;
+				}
+
+				connections[uri] = dbConn;
+				evts.emit('complete', null, dbConn);
 			});
-		}, 10000);
+		}
 	});
 
 	return promise;
