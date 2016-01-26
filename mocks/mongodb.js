@@ -6,42 +6,61 @@ module.exports = function (config) {
 	config = config || {};
 	let dbMock = config.dbMock || {};
 
-	const findInDb = (collection, query) => {
+
+	const match = function (item, query) {
 		let keys = Object.keys(query);
-		let itemsFound = [];
+		let foundIt = true;
 
-		dbMock[collection].forEach((item) => {
-			let foundIt = true;
+		keys.forEach((key) => {
+			if (key === '$or') {
+				let foundOr = false;
 
-			keys.forEach((key) => {
-				if (key === '$or') {
-					let foundOr = false;
+				query[key].forEach((subQuery) => {
+					let foundOrSub = true;
 
-					query[key].forEach((subQuery) => {
-						let foundOrSub = true;
+					Object.keys(subQuery).forEach((subKey) => {
+						let itemToCheck = item;
+						let keys = subKey.split('.');
 
-						Object.keys(subQuery).forEach((subKey) => {
-							if (item[subKey] !== subQuery[subKey]) {
-								foundOrSub = false;
-							}
-						});
+						for (let i = 0; i < keys.length; i++) {
+							itemToCheck = itemToCheck[keys[i]];
+						}
 
-						if (foundOrSub) {
-							foundOr = true;
+						if (itemToCheck !== subQuery[subKey]) {
+							foundOrSub = false;
 						}
 					});
 
-					if (!foundOr) {
-						foundIt = false;
+					if (foundOrSub) {
+						foundOr = true;
 					}
-				} else {
-					if (item[key] !== query[key]) {
-						foundIt = false;
-					}
-				}
-			});
+				});
 
-			if (foundIt) {
+				if (!foundOr) {
+					foundIt = false;
+				}
+			} else {
+				let itemToCheck = item;
+				let keys = key.split('.');
+
+				for (let i = 0; i < keys.length; i++) {
+					itemToCheck = itemToCheck[keys[i]];
+				}
+
+				if (itemToCheck !== query[key]) {
+					foundIt = false;
+				}
+			}
+		});
+
+		return foundIt;
+	};
+
+	const findInDb = (collection, query) => {
+		let itemsFound = [];
+
+		dbMock[collection].forEach((item) => {
+			if (match(item, query)) {
 				itemsFound.push(item);
 			}
 		});
@@ -50,21 +69,12 @@ module.exports = function (config) {
 	};
 
 	const removeFromDb = (collection, query) => {
-		let keys = Object.keys(query);
 		let i = 0;
 
 		while (i < dbMock[collection].length) {
 			let item = dbMock[collection][i];
 
-			let match = true;
-
-			keys.forEach((key) => {
-				if (item[key] !== query[key]) {
-					match = false;
-				}
-			});
-
-			if (match) {
+			if (match(item, query)) {
 				dbMock[collection].splice(i, 1);
 			} else {
 				i++;
@@ -74,7 +84,7 @@ module.exports = function (config) {
 
 	this.mock = {
 		MongoClient: {
-			connect: function (connectionString, callback) {
+			connect: function (connectionString, options, callback) {
 				if (connectionString === 'invalid') {
 					callback(new Error("Connection string not valid."));
 				} else {
@@ -84,15 +94,21 @@ module.exports = function (config) {
 							if (dbMock[collectionName]) {
 								return {
 									find: function (query) {
-										return {
-											toArray(callbackFind) {
-												if (query) {
-													callbackFind(null, _.cloneDeep(findInDb(collectionName, query)));
-												} else {
-													callbackFind(new Error("Invalid query."));
-													return;
-												}
+										var toArray = function (callbackFind) {
+											if (query) {
+												callbackFind(null, _.cloneDeep(findInDb(collectionName, query)));
+											} else {
+												callbackFind(new Error("Invalid query."));
+												return;
 											}
+										};
+										return {
+											maxTimeMS: function () {
+												return {
+													toArray: toArray
+												};
+											},
+											toArray: toArray
 										};
 									},
 									update: function (query, data, flags, callback) {
