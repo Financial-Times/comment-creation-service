@@ -12,7 +12,8 @@ var config = {
 			unfollowCollectionUrl: process.env.LIVEFYRE_UNFOLLOW_COLLECTION_URL,
 			postCommentUrl: process.env.LIVEFYRE_POST_COMMENT_URL,
 			deleteCommentUrl: process.env.LIVEFYRE_DELETE_COMMENT_URL
-		}
+		},
+		defaultSiteId: process.env.LIVEFYRE_DEFAULT_SITE_ID
 	},
 	mongo: {
 		uri: process.env.MONGOLAB_URI
