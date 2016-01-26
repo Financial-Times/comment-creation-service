@@ -23,16 +23,16 @@ exports.getHealth = function (callback) {
 		Promise.all([
 			(function () {
 				return livefyreService.getCollectionInfoPlus({
-					articleId: '556ce131-35fb-3eb4-b2ee-27277e897660',
-					siteId: 359893
+					articleId: '6c4bf2ff-999c-3168-8186-f2c3b0ccf6f4',
+					siteId: env.livefyre.defaultSiteId
 				}).catch((err) => {
 					throw 'getCollectionInfoPlus, statusCode: ' + err.statusCode;
 				});
 			}()),
 			(function () {
 				return livefyreService.getCommentsByPage({
-					articleId: '556ce131-35fb-3eb4-b2ee-27277e897660',
-					siteId: 359893,
+					articleId: '6c4bf2ff-999c-3168-8186-f2c3b0ccf6f4',
+					siteId: env.livefyre.defaultSiteId,
 					pageNumber: 0
 				}).catch((err) => {
 					throw 'getCommentsByPage, statusCode: ' + err.statusCode;
