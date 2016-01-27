@@ -118,7 +118,7 @@ router.get('/getComments', v1Controller.getComments);
  * @apiName postComment
  * @apiDescription Endpoint to post a comment.
  *
- * @apiParam {String|Number} 	collectionId 	Required. ID of the article.
+ * @apiParam {Number} 			collectionId 	Required. ID of the article.
  * @apiParam {String} 			commentBody 	Required. Url of the article.
  * @apiParam {String} 			token 			Required. Title of the article.
  * @apiParam {String} 			sessionId		Session ID of the user. Optional, but if not present, FTSession cookie is used.
@@ -173,7 +173,7 @@ router.post('/postComment', v1Controller.postComment);
  * @apiName deleteComment
  * @apiDescription Endpoint to post a comment.
  *
- * @apiParam {String|Number} 	collectionId 	Required. ID of the article.
+ * @apiParam {Number} 			collectionId 	Required. ID of the article.
  * @apiParam {String} 			commentBody 	Required. Url of the article.
  * @apiParam {String} 			token 			Required. Title of the article.
  * @apiParam {String} 			sessionId		Session ID of the user. Optional, but if not present, FTSession cookie is used.

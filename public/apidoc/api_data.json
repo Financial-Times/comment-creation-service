@@ -1,5 +1,139 @@
 [
   {
+    "type": "get / post",
+    "url": "v1/deleteComment",
+    "title": "deleteComment",
+    "version": "1.1.0",
+    "group": "v1",
+    "name": "deleteComment",
+    "description": "<p>Endpoint to post a comment.</p> ",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "<p>Number</p> ",
+            "optional": false,
+            "field": "collectionId",
+            "description": "<p>Required. ID of the article.</p> "
+          },
+          {
+            "group": "Parameter",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "commentBody",
+            "description": "<p>Required. Url of the article.</p> "
+          },
+          {
+            "group": "Parameter",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "token",
+            "description": "<p>Required. Title of the article.</p> "
+          },
+          {
+            "group": "Parameter",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "sessionId",
+            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p> "
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "success": [
+          {
+            "group": "success",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Whether the response is a success or not.</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "status",
+            "description": "<p>Textual representation of the status of the response</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>Number</p> ",
+            "optional": false,
+            "field": "code",
+            "description": "<p>HTTP status code of the response</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "invalidSession",
+            "description": "<p>Whether the user's session is valid or not.</p> "
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Full response",
+          "content": "HTTP/1.1 200 OK\n {\n \t\"status\": \"ok\",\n \t\"code\": 200,\n \t\"success\": true,\n \t\"invalidSession\": false\n }",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "unclassified": [
+          {
+            "group": "unclassified",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Whether the response is a success or not.</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "status",
+            "description": "<p>Textual representation of the status of the response</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>Number</p> ",
+            "optional": false,
+            "field": "code",
+            "description": "<p>HTTP status code of the response</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "errorMessage",
+            "description": "<p>The error message</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "invalidSession",
+            "description": "<p>Whether the user's session is valid or not.</p> "
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unclassified article",
+          "content": "HTTP/1.1 401 Not authorized\n {\n \t\"success\": false,\n \t\"status\": \"error\",\n \t\"code\": 401,\n \t\"errorMessage\": \"User session is not valid.\",\n \t\"invalidSession\": true\n }",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "app/routes/v1.js",
+    "groupTitle": "v1"
+  },
+  {
     "type": "get",
     "url": "v1/getComments",
     "title": "getComments",
@@ -116,7 +250,7 @@
           },
           {
             "group": "success",
-            "type": "<p>Timestamp</p> ",
+            "type": "<p>Number</p> ",
             "optional": false,
             "field": "userDetails.expires",
             "description": "<p>Timestamp of when the token expires.</p> "
@@ -197,6 +331,161 @@
         {
           "title": "No pseudonym",
           "content": "HTTP/1.1 200 OK\n {\n    \"collection\": {\n        ...\n    },\n    \"userDetails\": {\n        \"pseudonym\": false\n    }\n }",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "app/routes/v1.js",
+    "groupTitle": "v1"
+  },
+  {
+    "type": "get / post",
+    "url": "v1/postComment",
+    "title": "postComment",
+    "version": "1.1.0",
+    "group": "v1",
+    "name": "postComment",
+    "description": "<p>Endpoint to post a comment.</p> ",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "<p>Number</p> ",
+            "optional": false,
+            "field": "collectionId",
+            "description": "<p>Required. ID of the article.</p> "
+          },
+          {
+            "group": "Parameter",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "commentBody",
+            "description": "<p>Required. Url of the article.</p> "
+          },
+          {
+            "group": "Parameter",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "token",
+            "description": "<p>Required. Title of the article.</p> "
+          },
+          {
+            "group": "Parameter",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "sessionId",
+            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p> "
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "success": [
+          {
+            "group": "success",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Whether the response is a success or not.</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "status",
+            "description": "<p>Textual representation of the status of the response</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>Number</p> ",
+            "optional": false,
+            "field": "code",
+            "description": "<p>HTTP status code of the response</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "bodyHtml",
+            "description": "<p>The content of the comment posted.</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "commentId",
+            "description": "<p>ID of the comment.</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>Number</p> ",
+            "optional": false,
+            "field": "createdAt",
+            "description": "<p>Timestamp of the creation date of the comment</p> "
+          },
+          {
+            "group": "success",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "invalidSession",
+            "description": "<p>Whether the user's session is valid or not.</p> "
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Full response",
+          "content": "HTTP/1.1 200 OK\n {\n \t\"bodyHtml\": \"<p>101</p>\",\n \t\"commentId\": \"450210605\",\n   \t\"createdAt\": 1453884494,\n   \t\"status\": \"ok\",\n   \t\"code\": 200,\n    \"success\": true,\n    \"invalidSession\": false\n }",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "unclassified": [
+          {
+            "group": "unclassified",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Whether the response is a success or not.</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "status",
+            "description": "<p>Textual representation of the status of the response</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>Number</p> ",
+            "optional": false,
+            "field": "code",
+            "description": "<p>HTTP status code of the response</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>String</p> ",
+            "optional": false,
+            "field": "errorMessage",
+            "description": "<p>The error message</p> "
+          },
+          {
+            "group": "unclassified",
+            "type": "<p>Boolean</p> ",
+            "optional": false,
+            "field": "invalidSession",
+            "description": "<p>Whether the user's session is valid or not.</p> "
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unclassified article",
+          "content": "HTTP/1.1 401 Not authorized\n {\n \t\"success\": false,\n \t\"status\": \"error\",\n \t\"code\": 401,\n \t\"errorMessage\": \"User session is not valid.\",\n \t\"invalidSession\": true\n }",
           "type": "json"
         }
       ]
