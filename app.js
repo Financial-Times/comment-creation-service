@@ -21,7 +21,7 @@ var routes = {
     __health: require('./app/routes/__health'),
     __about: require('./app/routes/__about'),
     __gtg: require('./app/routes/__gtg'),
-    troubleshooting: require('./app/routes/troubleshooting')
+    troubleshoot: require('./app/routes/troubleshoot')
 };
 
 
@@ -86,7 +86,7 @@ if (env.maintenanceModeOn) {
     app.use('/', routes.__health);
     app.use('/', routes.__about);
     app.use('/', routes.__gtg);
-    app.use('/', routes.troubleshooting);
+    app.use('/', routes.troubleshoot);
     app.get('/', function(req, res) {
         res.redirect('/apidoc');
     });
