@@ -26,7 +26,7 @@ const v1Controller = require('../controllers/v1');
  * @apiSuccess (success) {Number}		collection.nextPage				Next page of comments (pagination)
  * @apiSuccess (success) {Object}		userDetails 					Data about the user
  * @apiSuccess (success) {String}		userDetails.token 				Auth token of Livefyre. See [Livefyre documentation](http://answers.livefyre.com/developers/getting-started/tokens/auth/)
- * @apiSuccess (success) {Timestamp}	userDetails.expires 			Timestamp of when the token expires.
+ * @apiSuccess (success) {Number}		userDetails.expires 			Timestamp of when the token expires.
  * @apiSuccess (success) {String}		userDetails.displayName 		The user's pseudonym (nickname).
  * @apiSuccess (success) {Object}		userDetails.settings 			The user's email notification settings.
  * @apiSuccess (success) {Object}		userDetails.moderationRights 	Moderation rights of the user
@@ -111,9 +111,106 @@ const v1Controller = require('../controllers/v1');
  */
 router.get('/getComments', v1Controller.getComments);
 
+/**
+ * @api {get / post} v1/postComment postComment
+ * @apiVersion 1.1.0
+ * @apiGroup v1
+ * @apiName postComment
+ * @apiDescription Endpoint to post a comment.
+ *
+ * @apiParam {String|Number} 	collectionId 	Required. ID of the article.
+ * @apiParam {String} 			commentBody 	Required. Url of the article.
+ * @apiParam {String} 			token 			Required. Title of the article.
+ * @apiParam {String} 			sessionId		Session ID of the user. Optional, but if not present, FTSession cookie is used.
+ *
+ * @apiSuccess (success) {Boolean}		success				Whether the response is a success or not.
+ * @apiSuccess (success) {String}		status 				Textual representation of the status of the response
+ * @apiSuccess (success) {Number}		code 				HTTP status code of the response
+ * @apiSuccess (success) {String}		bodyHtml			The content of the comment posted.
+ * @apiSuccess (success) {String}		commentId 			ID of the comment.
+ * @apiSuccess (success) {Number}		createdAt			Timestamp of the creation date of the comment
+ * @apiSuccess (success) {Boolean}		invalidSession 		Whether the user's session is valid or not.
+ *
+ * @apiError (unclassified) {Boolean} 		success 		Whether the response is a success or not.
+ * @apiError (unclassified) {String} 		status 			Textual representation of the status of the response
+ * @apiError (unclassified) {Number} 		code 			HTTP status code of the response
+ * @apiError (unclassified) {String} 		errorMessage 	The error message
+ * @apiError (unclassified) {Boolean} 		invalidSession 	Whether the user's session is valid or not.
+ *
+ * @apiSuccessExample Full response
+ *  HTTP/1.1 200 OK
+ *   {
+ *   	"bodyHtml": "<p>101</p>",
+ *   	"commentId": "450210605",
+ *     	"createdAt": 1453884494,
+ *     	"status": "ok",
+ *     	"code": 200,
+ *      "success": true,
+ *      "invalidSession": false
+ *   }
+ *
+ *
+ *
+ * @apiErrorExample Unclassified article
+ *  HTTP/1.1 401 Not authorized
+ *   {
+ *   	"success": false,
+ *   	"status": "error",
+ *   	"code": 401,
+ *   	"errorMessage": "User session is not valid.",
+ *   	"invalidSession": true
+ *   }
+ *
+ */
 router.get('/postComment', v1Controller.postComment);
 router.post('/postComment', v1Controller.postComment);
 
+
+/**
+ * @api {get / post} v1/deleteComment deleteComment
+ * @apiVersion 1.1.0
+ * @apiGroup v1
+ * @apiName deleteComment
+ * @apiDescription Endpoint to post a comment.
+ *
+ * @apiParam {String|Number} 	collectionId 	Required. ID of the article.
+ * @apiParam {String} 			commentBody 	Required. Url of the article.
+ * @apiParam {String} 			token 			Required. Title of the article.
+ * @apiParam {String} 			sessionId		Session ID of the user. Optional, but if not present, FTSession cookie is used.
+ *
+ * @apiSuccess (success) {Boolean}		success				Whether the response is a success or not.
+ * @apiSuccess (success) {String}		status 				Textual representation of the status of the response
+ * @apiSuccess (success) {Number}		code 				HTTP status code of the response
+ * @apiSuccess (success) {Boolean}		invalidSession 		Whether the user's session is valid or not.
+ *
+ * @apiError (unclassified) {Boolean} 		success 		Whether the response is a success or not.
+ * @apiError (unclassified) {String} 		status 			Textual representation of the status of the response
+ * @apiError (unclassified) {Number} 		code 			HTTP status code of the response
+ * @apiError (unclassified) {String} 		errorMessage 	The error message
+ * @apiError (unclassified) {Boolean} 		invalidSession 	Whether the user's session is valid or not.
+ *
+ * @apiSuccessExample Full response
+ *  HTTP/1.1 200 OK
+ *   {
+ *   	"status": "ok",
+ *   	"code": 200,
+ *   	"success": true,
+ *   	"invalidSession": false
+ *   }
+ *
+ *
+ *
+ * @apiErrorExample Unclassified article
+ *  HTTP/1.1 401 Not authorized
+ *   {
+ *   	"success": false,
+ *   	"status": "error",
+ *   	"code": 401,
+ *   	"errorMessage": "User session is not valid.",
+ *   	"invalidSession": true
+ *   }
+ *
+ */
 router.get('/deleteComment', v1Controller.deleteComment);
 router.delete('/deleteComment', v1Controller.deleteComment);
 
