@@ -21,6 +21,7 @@
     "morgan": "~1.6.1",
     "needle": "^0.10.0",
     "serve-favicon": "~2.3.0",
+    "throng": "^1.0.1",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
