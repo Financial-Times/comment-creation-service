@@ -4,7 +4,7 @@ const _ = require('lodash');
 const assert = require('assert');
 const proxyquire =  require('proxyquire');
 const consoleLogger = require('../../../app/utils/consoleLogger');
-const NeedleMock = require('../../../mocks/needle');
+const RequestMock = require('../../../mocks/request');
 const MongodbMock = require('../../../mocks/mongodb');
 
 consoleLogger.disable();
@@ -116,18 +116,12 @@ Object.keys(articles).forEach((key) => {
 const collectionsCreated = {};
 const collectionsCreatedRespondedWithError = {};
 
-const needleMock = new NeedleMock({
+const requestMock = new RequestMock({
 	items: [
 		{
 			url: env.livefyre.api.createCollectionUrl,
 			handler: function (config) {
 				if (!config.postData) {
-					config.callback(null, {
-						statusCode: 400
-					});
-				}
-
-				if (!config.params || !config.params.json) {
 					config.callback(null, {
 						statusCode: 400
 					});
@@ -164,9 +158,9 @@ const needleMock = new NeedleMock({
 
 				config.callback(null, {
 					statusCode: 200,
-					body: {
+					body: JSON.stringify({
 						"status": "ok"
-					}
+					})
 				});
 			}
 		},
@@ -191,10 +185,10 @@ const needleMock = new NeedleMock({
 				if (collection) {
 					config.callback(null, {
 						statusCode: 200,
-						body: _.extend({
+						body: JSON.stringify(_.extend({
 							code: 200,
 							status: "ok"
-						}, collection)
+						}, collection))
 					});
 					return;
 				}
@@ -205,10 +199,10 @@ const needleMock = new NeedleMock({
 					if (collectionsCreatedRespondedWithError[articleId + '-' + config.matches.urlParams.siteId]) {
 						config.callback(null, {
 							statusCode: 200,
-							body: _.extend({
+							body: JSON.stringify(_.extend({
 								code: 200,
 								status: "ok"
-							}, collection)
+							}, collection))
 						});
 						return;
 					} else {
@@ -252,7 +246,7 @@ const needleMock = new NeedleMock({
 
 				config.callback(null, {
 					statusCode: 200,
-					body: returnData
+					body: JSON.stringify(returnData)
 				});
 			}
 		}
@@ -273,7 +267,7 @@ const mongodbMock = new MongodbMock({
 
 
 const CollectionDataStore = proxyquire('../../../app/storage/CollectionDataStore.js', {
-	'needle': needleMock.mock,
+	'request': requestMock.mock,
 	'../../env': env,
 	mongodb: mongodbMock.mock
 });

@@ -3,7 +3,7 @@
 const assert = require('assert');
 const proxyquire =  require('proxyquire');
 const consoleLogger = require('../../../app/utils/consoleLogger');
-const NeedleMock = require('../../../mocks/needle');
+const RequestMock = require('../../../mocks/request');
 
 consoleLogger.disable();
 
@@ -111,7 +111,7 @@ Object.keys(sessions).forEach((key) => {
 	sudsGetAuthSessions[sessions[key].id] = sessions[key].getAuth;
 });
 
-const needleMock = new NeedleMock({
+const requestMock = new RequestMock({
 	items: [
 		{
 			url: env.suds.api.getCollectionDetails,
@@ -132,7 +132,7 @@ const needleMock = new NeedleMock({
 
 				config.callback(null, {
 					statusCode: 200,
-					body: sudsCollectionDetailsArticle[config.matches.queryParams.articleId]
+					body: JSON.stringify(sudsCollectionDetailsArticle[config.matches.queryParams.articleId])
 				});
 			}
 		},
@@ -147,7 +147,7 @@ const needleMock = new NeedleMock({
 				if (sudsGetAuthSessions[config.matches.queryParams.sessionId]) {
 					config.callback(null, {
 						statusCode: 200,
-						body: sudsGetAuthSessions[config.matches.queryParams.sessionId]
+						body: JSON.stringify(sudsGetAuthSessions[config.matches.queryParams.sessionId])
 					});
 					return;
 				}
@@ -162,7 +162,7 @@ const needleMock = new NeedleMock({
 });
 
 const suds = proxyquire('../../../app/services/suds.js', {
-	'needle': needleMock.mock,
+	'request': requestMock.mock,
 	'../../env': env
 });
 
@@ -260,25 +260,25 @@ describe('suds', function() {
 
 		it('should send all required parameters to the service', function () {
 			return suds.getCollectionDetails(articles.withRequiredParameters.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withRequiredParameters.toSend.articleId).queryParams, articles.withRequiredParameters.toSend, "All required parameters are sent to the service.");
+				assert.deepEqual(requestMock.getParamsHistoryForId(articles.withRequiredParameters.toSend.articleId).queryParams, articles.withRequiredParameters.toSend, "All required parameters are sent to the service.");
 			});
 		});
 
 		it('should send `tags` parameter to the service', function () {
 			return suds.getCollectionDetails(articles.withTags.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withTags.toSend.articleId).queryParams, articles.withTags.toSend, "`tags` parameter is sent to the service.");
+				assert.deepEqual(requestMock.getParamsHistoryForId(articles.withTags.toSend.articleId).queryParams, articles.withTags.toSend, "`tags` parameter is sent to the service.");
 			});
 		});
 
 		it('should send `sessionId` parameter to the service', function () {
 			return suds.getCollectionDetails(articles.withSessionId.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withSessionId.toSend.articleId).queryParams, articles.withSessionId.toSend, "`sessionId` parameter is sent to the service.");
+				assert.deepEqual(requestMock.getParamsHistoryForId(articles.withSessionId.toSend.articleId).queryParams, articles.withSessionId.toSend, "`sessionId` parameter is sent to the service.");
 			});
 		});
 
 		it('should send `streamType` parameter to the service', function () {
 			return suds.getCollectionDetails(articles.withStreamType.toSend).then(() => {
-				assert.deepEqual(needleMock.getParamsHistoryForId(articles.withStreamType.toSend.articleId).queryParams.stream_type, articles.withStreamType.toSend.streamType, "`streamType` parameter is sent to the service as `stream_type`.");
+				assert.deepEqual(requestMock.getParamsHistoryForId(articles.withStreamType.toSend.articleId).queryParams.stream_type, articles.withStreamType.toSend.streamType, "`streamType` parameter is sent to the service as `stream_type`.");
 			});
 		});
 	});

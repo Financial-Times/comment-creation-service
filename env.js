@@ -30,6 +30,10 @@ var config = {
 	cache: {
 		commentsExpireInMinutes: process.env.CACHE_COMMENTS_EXPIRE_IN_MINUTES || 5
 	},
+	timeouts: {
+		services: process.env.SERVICES_TIMEOUT && parseInt(process.env.SERVICES_TIMEOUT, 10) ? parseInt(process.env.SERVICES_TIMEOUT, 10) : 15000,
+		queries: process.env.DB_QUERIES_TIMEOUT && parseInt(process.env.DB_QUERIES_TIMEOUT, 10) ? parseInt(process.env.DB_QUERIES_TIMEOUT, 10) : 10000,
+	},
 	host: process.env.HOST || 'comment-creation-service.herokuapp.com',
 	maintenanceModeOn: ['true', true].indexOf(process.env.MAINTENANCE_ON) !== -1 ? true : false
 };

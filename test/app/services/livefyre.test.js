@@ -3,7 +3,7 @@
 const assert = require('assert');
 const proxyquire =  require('proxyquire');
 const consoleLogger = require('../../../app/utils/consoleLogger');
-const NeedleMock = require('../../../mocks/needle');
+const RequestMock = require('../../../mocks/request');
 
 consoleLogger.disable();
 
@@ -65,18 +65,12 @@ Object.keys(articles).forEach((key) => {
 	commentsByPageArticles[articles[key].id] = articles[key];
 });
 
-const needleMock = new NeedleMock({
+const requestMock = new RequestMock({
 	items: [
 		{
 			url: env.livefyre.api.createCollectionUrl,
 			handler: function (config) {
 				if (!config.postData) {
-					config.callback(null, {
-						statusCode: 400
-					});
-				}
-
-				if (!config.params || !config.params.json) {
 					config.callback(null, {
 						statusCode: 400
 					});
@@ -105,9 +99,9 @@ const needleMock = new NeedleMock({
 
 				config.callback(null, {
 					statusCode: 200,
-					body: {
+					body: JSON.stringify({
 						"status": "ok"
-					}
+					})
 				});
 			}
 		},
@@ -130,7 +124,7 @@ const needleMock = new NeedleMock({
 				if (article && String(article.siteId) === String(config.matches.urlParams.siteId)) {
 					config.callback(null, {
 						statusCode: 200,
-						body: article.comments[config.matches.urlParams.pageNumber]
+						body: JSON.stringify(article.comments[config.matches.urlParams.pageNumber])
 					});
 					return;
 				}
@@ -159,7 +153,7 @@ const needleMock = new NeedleMock({
 				if (article && String(article.siteId) === String(config.matches.urlParams.siteId)) {
 					config.callback(null, {
 						statusCode: 200,
-						body: article.collectionInfo
+						body: JSON.stringify(article.collectionInfo)
 					});
 					return;
 				}
@@ -192,10 +186,10 @@ const needleMock = new NeedleMock({
 				config.history[config.matches.urlParams.collectionId] = config;
 				config.callback(null, {
 					statusCode: 200,
-					body: {
+					body: JSON.stringify({
 						status: "ok",
 						code: 200
-					}
+					})
 				});
 			}
 		},
@@ -215,10 +209,10 @@ const needleMock = new NeedleMock({
 				if (config.matches.urlParams.collectionId && config.matches.urlParams.collectionId.indexOf('notfound') !== -1) {
 					config.callback(null, {
 						statusCode: 404,
-						body: {
+						body: JSON.stringify({
 							status: "error",
 							code: 404
-						}
+						})
 					});
 					return;
 				}
@@ -226,7 +220,7 @@ const needleMock = new NeedleMock({
 				config.history[config.matches.urlParams.collectionId] = config;
 				config.callback(null, {
 					statusCode: 200,
-					body: {
+					body: JSON.stringify({
 						status: "ok",
 						code: 200,
 						data: {
@@ -238,7 +232,7 @@ const needleMock = new NeedleMock({
 							}],
 							authors: []
 						}
-					}
+					})
 				});
 			}
 		},
@@ -258,10 +252,10 @@ const needleMock = new NeedleMock({
 				if (config.matches.urlParams.commentId && config.matches.urlParams.commentId.indexOf('notfound') !== -1) {
 					config.callback(null, {
 						statusCode: 404,
-						body: {
+						body: JSON.stringify({
 							status: "error",
 							code: 404
-						}
+						})
 					});
 					return;
 				}
@@ -269,10 +263,10 @@ const needleMock = new NeedleMock({
 				config.history[config.matches.urlParams.commentId] = config;
 				config.callback(null, {
 					statusCode: 200,
-					body: {
+					body: JSON.stringify({
 						status: "ok",
 						code: 200
-					}
+					})
 				});
 			}
 		}
@@ -281,7 +275,7 @@ const needleMock = new NeedleMock({
 });
 
 const livefyre = proxyquire('../../../app/services/livefyre.js', {
-	'needle': needleMock.mock,
+	'request': requestMock.mock,
 	'../../env': env
 });
 
@@ -351,11 +345,11 @@ describe('livefyre', function() {
 				siteId: siteId
 			}).then(() => {
 				assert.ok(true, "Success.");
-				assert.deepEqual(needleMock.getParamsHistoryForId(collectionMeta).postData, {
+				assert.deepEqual(requestMock.getParamsHistoryForId(collectionMeta).postData, {
 					collectionMeta: collectionMeta
 				}, "The post data sent to the service is correct.");
 
-				assert.deepEqual(needleMock.getParamsHistoryForId(collectionMeta).siteId, siteId, "The data sent by URL parameters to the service is correct.");
+				assert.deepEqual(requestMock.getParamsHistoryForId(collectionMeta).siteId, siteId, "The data sent by URL parameters to the service is correct.");
 			});
 		});
 
@@ -370,7 +364,7 @@ describe('livefyre', function() {
 				checksum: checksum
 			}).then(() => {
 				assert.ok(true, "Success.");
-				assert.deepEqual(needleMock.getParamsHistoryForId(collectionMeta).postData, {
+				assert.deepEqual(requestMock.getParamsHistoryForId(collectionMeta).postData, {
 					collectionMeta: collectionMeta,
 					checksum: checksum
 				}, "The post data sent to the service is correct.");
@@ -613,7 +607,7 @@ describe('livefyre', function() {
 				collectionId: collectionId,
 				token: token
 			}).then((data) => {
-				assert.deepEqual(needleMock.getParamsHistoryForId(collectionId).postData, {
+				assert.deepEqual(requestMock.getParamsHistoryForId(collectionId).postData, {
 					lftoken: token
 				}, "Token sent correctly as post data.");
 			});
@@ -728,7 +722,7 @@ describe('livefyre', function() {
 				token: token,
 				commentBody: commentBody
 			}).then((data) => {
-				assert.deepEqual(needleMock.getParamsHistoryForId(collectionId).postData, {
+				assert.deepEqual(requestMock.getParamsHistoryForId(collectionId).postData, {
 					lftoken: token,
 					body: commentBody
 				});
@@ -835,7 +829,7 @@ describe('livefyre', function() {
 				token: token,
 				commentId: commentId
 			}).then((data) => {
-				assert.deepEqual(needleMock.getParamsHistoryForId(commentId).postData, {
+				assert.deepEqual(requestMock.getParamsHistoryForId(commentId).postData, {
 					lftoken: token,
 					collection_id: collectionId
 				});

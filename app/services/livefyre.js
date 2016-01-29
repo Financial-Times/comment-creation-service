@@ -1,6 +1,6 @@
 "use strict";
 
-const needle = require('needle');
+const request = require('../utils/request_with_defaults.js');
 const env = require('../../env');
 const consoleLogger = require('../utils/consoleLogger');
 const Timer = require('../utils/Timer');
@@ -39,19 +39,34 @@ exports.createCollection = function (config) {
 
 		let timer = new Timer();
 
-		needle.post(url, postData, {json: true}, (err, response) => {
+
+		request.post({
+			url: url,
+			json: postData
+		}, (err, response) => {
 			endTimer(timer, 'createCollection', url);
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response || response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('livefyre.createCollection error', err || new Error(response ? response.statusCode : 'No response'));
+				}
+
 				reject({
 					error: err,
-					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
-
-				if (err) {
-					consoleLogger.warn('livefyre.createCollection error', err);
-				}
 				return;
 			}
 
@@ -82,24 +97,35 @@ exports.getCollectionInfoPlus = function (config) {
 
 		let timer = new Timer();
 
-		needle.get(url, (err, response) => {
+		request.get(url, (err, response) => {
 			endTimer(timer, 'getCollectionInfoPlus', url);
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response|| response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('livefyre.getCollectionInfoPlus error', err || new Error(response ? response.statusCode : 'No response'));
+				}
+
 				reject({
 					error: err,
-					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
-
-				if (err) {
-					consoleLogger.warn('livefyre.getCollectionInfoPlus error', err);
-				}
 				return;
 			}
 
-			if (response.body && response.body.collectionSettings && response.body.headDocument) {
-				resolve(response.body);
+			if (body && body.collectionSettings && body.headDocument) {
+				resolve(body);
 			} else {
 				reject({
 					statusCode: 503,
@@ -131,24 +157,35 @@ exports.getCommentsByPage = function (config) {
 
 		let timer = new Timer();
 
-		needle.get(url, (err, response) => {
+		request.get(url, (err, response) => {
 			endTimer(timer, 'getCommentsByPage', url);
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response|| response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('livefyre.getCommentsByPage error', err || new Error(response ? response.statusCode : 'No response'));
+				}
+
 				reject({
 					error: err,
-					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
-
-				if (err) {
-					consoleLogger.warn('livefyre.getCommentsByPage error', err);
-				}
 				return;
 			}
 
-			if (response.body && response.body.content && response.body.authors) {
-				resolve(response.body);
+			if (body && body.content && body.authors) {
+				resolve(body);
 			} else {
 				reject({
 					statusCode: 503,
@@ -178,31 +215,42 @@ exports.unfollowCollection = function (config) {
 
 		let timer = new Timer();
 
-		needle.post(url, {
+		request.post(url, {
 			lftoken: config.token
 		}, (err, response) => {
 			endTimer(timer, 'unfollowCollection', url);
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response|| response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('livefyre.unfollowCollection error', err || new Error(response ? response.statusCode : 'No response'));
+				}
+
 				reject({
 					error: err,
-					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
-
-				if (err) {
-					consoleLogger.warn('livefyre.unfollowCollection error', err);
-				}
 				return;
 			}
 
-			if (response.body && response.body.status === "ok") {
-				resolve(response.body);
+			if (body && body.status === "ok") {
+				resolve(body);
 			} else {
 				reject({
-					statusCode: response && response.body ? response.body.code || 503 : 503,
+					statusCode: response && response.statusCode ? response.statusCode : 503,
 					error: new Error("Invalid response received from Livefyre."),
-					responseBody: response ? response.body : null
+					responseBody: body
 				});
 			}
 		});
@@ -228,17 +276,28 @@ exports.postComment = function (config) {
 
 		let timer = new Timer();
 
-		needle.post(url, {
+		request.post(url, {
 			lftoken: config.token,
 			body: config.commentBody
 		}, (err, response) => {
 			endTimer(timer, 'postComment', url);
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
-				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain') {
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response|| response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (response && response.statusCode === 403 && body && body.msg === 'Wrong domain') {
 					reject({
 						error: err,
-						responseBody: response ? _.extend(response.body, {
+						responseBody: body ? _.extend(body, {
 							code: 404,
 							msg: 'Collection not found'
 						}) : null,
@@ -249,23 +308,23 @@ exports.postComment = function (config) {
 
 				reject({
 					error: err,
-					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
 
-				if (err) {
-					consoleLogger.warn('livefyre.postComment error', err);
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('livefyre.postComment error', err || new Error(response ? response.statusCode : 'No response'));
 				}
 				return;
 			}
 
-			if (response.body && response.body.status === "ok" && response.body.data && response.body.data.messages && response.body.data.messages.length) {
-				resolve(response.body);
+			if (body && body.status === "ok" && body.data && body.data.messages && body.data.messages.length) {
+				resolve(body);
 			} else {
 				reject({
-					statusCode: response ? response.statusCode : 503,
+					statusCode: response && response.statusCode ? response.statusCode : 503,
 					error: new Error("Invalid response received from Livefyre."),
-					responseBody: response ? response.body : null
+					responseBody: body
 				});
 			}
 		});
@@ -291,17 +350,28 @@ exports.deleteComment = function (config) {
 
 		let timer = new Timer();
 
-		needle.post(url, {
+		request.post(url, {
 			lftoken: config.token,
 			collection_id: config.collectionId
 		}, (err, response) => {
 			endTimer(timer, 'deleteComment', url);
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300)) {
-				if (response && response.statusCode === 403 && response.body && response.body.msg === 'Wrong domain') {
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response|| response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (response && response.statusCode === 403 && body && body.msg === 'Wrong domain') {
 					reject({
 						error: err,
-						responseBody: response ? _.extend(response.body, {
+						responseBody: body ? _.extend(body, {
 							code: 404,
 							msg: 'Collection not found'
 						}) : null,
@@ -312,8 +382,8 @@ exports.deleteComment = function (config) {
 
 				reject({
 					error: err,
-					responseBody: response ? response.body : null,
-					statusCode: response ? response.statusCode : 503
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
 
 				if (err) {
@@ -322,13 +392,13 @@ exports.deleteComment = function (config) {
 				return;
 			}
 
-			if (response.body && response.body.status === "ok") {
-				resolve(response.body);
+			if (body && body.status === "ok") {
+				resolve(body);
 			} else {
 				reject({
-					statusCode: response ? response.statusCode : 503,
+					statusCode: response && response.statusCode ? response.statusCode : 503,
 					error: new Error("Invalid response received from Livefyre."),
-					responseBody: response ? response.body : null
+					responseBody: body
 				});
 			}
 		});

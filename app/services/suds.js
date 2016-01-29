@@ -1,6 +1,6 @@
 "use strict";
 
-const needle = require('needle');
+const request = require('../utils/request_with_defaults.js');
 const consoleLogger = require('../utils/consoleLogger');
 const env = require('../../env');
 const Timer = require('../utils/Timer');
@@ -46,22 +46,34 @@ exports.getCollectionDetails = function (config) {
 
 		let timer = new Timer();
 
-		needle.get(url, function (err, response) {
+		request.get(url, function (err, response) {
 			endTimer(timer, 'getCollectionDetails', config.articleId);
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
-				if (err) {
-					consoleLogger.warn('suds.getAuth error', err);
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response || response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('suds.getCollectionDetails error', err || new Error(response ? response.statusCode : 'No response'));
 				}
 
 				reject({
-					error: err || new Error("StatusCode: " + response.statusCode),
-					statusCode: response ? response.statusCode : 503,
-					responseBody: response ? response.body : null
+					error: err,
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
-			} else {
-				resolve(response.body);
+				return;
 			}
+
+			resolve(body);
 		});
 	});
 
@@ -81,22 +93,33 @@ exports.getAuth = function (sessionId) {
 
 		let timer = new Timer();
 
-		needle.get(env.suds.api.getAuth + '?sessionId=' + sessionId, function (err, response) {
+		request.get(env.suds.api.getAuth + '?sessionId=' + sessionId, function (err, response) {
 			endTimer(timer, 'getAuth');
 
-			if (err || !response || (response.statusCode < 200 || response.statusCode >= 300) || !response.body) {
-				if (err) {
-					consoleLogger.warn('suds.getAuth error', err);
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response || response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('suds.getAuth error', err || new Error(response ? response.statusCode : 'No response'));
 				}
 
 				reject({
-					error: err || new Error("StatusCode: " + response.statusCode),
-					statusCode: response ? response.statusCode : 503,
-					responseBody: response ? response.body : null
+					error: err,
+					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
-			} else {
-				resolve(response.body);
+				return;
 			}
+
+			resolve(body);
 		});
 	});
 

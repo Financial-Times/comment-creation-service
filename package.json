@@ -19,7 +19,7 @@
     "mongo-sanitize": "^1.0.0",
     "mongodb": "^2.0.45",
     "morgan": "~1.6.1",
-    "needle": "^0.10.0",
+    "request": "^2.69.0",
     "serve-favicon": "~2.3.0",
     "throng": "^1.0.1",
     "valid-url": "^1.0.9"

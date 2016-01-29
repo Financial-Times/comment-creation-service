@@ -4,7 +4,7 @@ const _ = require('lodash');
 const assert = require('assert');
 const proxyquire =  require('proxyquire');
 const consoleLogger = require('../../../app/utils/consoleLogger');
-const NeedleMock = require('../../../mocks/needle');
+const RequestMock = require('../../../mocks/request');
 const MongodbMock = require('../../../mocks/mongodb');
 const uuid = require('node-uuid');
 
@@ -37,7 +37,7 @@ function generateLfComment (number, authorId, vis) {
 			parentId: null,
 			authorId: authorId,
 			bodyHtml: 'Comment ' + number,
-			createdAt: new Date()
+			createdAt: new Date().getTime()
 		},
 		event: number,
 		vis: vis
@@ -221,7 +221,7 @@ function transformLfPage (article, page) {
 }
 
 
-const needleMock = new NeedleMock({
+const requestMock = new RequestMock({
 	items: [
 		{
 			url: env.livefyre.api.commentsByPageUrl,
@@ -242,7 +242,7 @@ const needleMock = new NeedleMock({
 				if (article && article.comments && String(article.siteId) === String(config.matches.urlParams.siteId)) {
 					config.callback(null, {
 						statusCode: 200,
-						body: article.comments[config.matches.urlParams.pageNumber]
+						body: JSON.stringify(article.comments[config.matches.urlParams.pageNumber])
 					});
 					return;
 				}
@@ -271,7 +271,7 @@ const needleMock = new NeedleMock({
 				if (article && article.collectionInfo && String(article.siteId) === String(config.matches.urlParams.siteId)) {
 					config.callback(null, {
 						statusCode: 200,
-						body: article.collectionInfo
+						body: JSON.stringify(article.collectionInfo)
 					});
 					return;
 				}
@@ -303,7 +303,7 @@ const mongodbMock = new MongodbMock({
 
 
 const CommentsCache = proxyquire('../../../app/storage/CommentsCache.js', {
-	'needle': needleMock.mock,
+	'request': requestMock.mock,
 	'../../env': env,
 	mongodb: mongodbMock.mock
 });
