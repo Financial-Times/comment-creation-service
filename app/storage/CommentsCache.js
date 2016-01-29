@@ -47,7 +47,7 @@ const CommentsCache = function (articleId, siteId) {
 					db.getConnection(env.mongo.uri).then((connection) => {
 						connection.collection(mongoCollection).find({
 							_id: mongoSanitize(combinedId)
-						}).toArray(function (errDb, data) {
+						}).maxTimeMS(env.timeouts.queries).toArray(function (errDb, data) {
 							if (errDb) {
 								consoleLogger.warn(combinedId, 'cache retrieval failed', errDb);
 

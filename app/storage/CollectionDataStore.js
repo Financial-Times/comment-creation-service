@@ -47,7 +47,7 @@ var CollectionDataStore = function (articleId) {
 					db.getConnection(env.mongo.uri).then((connection) => {
 						connection.collection(mongoCollection).find({
 							_id: mongoSanitize(articleId)
-						}).toArray(function (errDb, data) {
+						}).maxTimeMS(env.timeouts.queries).toArray(function (errDb, data) {
 							if (errDb) {
 								consoleLogger.warn(articleId, 'cache retrieval failed', errDb);
 
