@@ -40,8 +40,7 @@ exports.createCollection = function (config) {
 		let timer = new Timer();
 
 
-		request.post({
-			url: url,
+		request.post(url, {
 			json: postData
 		}, (err, response) => {
 			endTimer(timer, 'createCollection', url);
@@ -216,7 +215,9 @@ exports.unfollowCollection = function (config) {
 		let timer = new Timer();
 
 		request.post(url, {
-			lftoken: config.token
+			form: {
+				lftoken: config.token
+			}
 		}, (err, response) => {
 			endTimer(timer, 'unfollowCollection', url);
 
@@ -277,8 +278,10 @@ exports.postComment = function (config) {
 		let timer = new Timer();
 
 		request.post(url, {
-			lftoken: config.token,
-			body: config.commentBody
+			form: {
+				lftoken: config.token,
+				body: config.commentBody
+			}
 		}, (err, response) => {
 			endTimer(timer, 'postComment', url);
 
@@ -351,8 +354,10 @@ exports.deleteComment = function (config) {
 		let timer = new Timer();
 
 		request.post(url, {
-			lftoken: config.token,
-			collection_id: config.collectionId
+			form: {
+				lftoken: config.token,
+				collection_id: config.collectionId
+			}
 		}, (err, response) => {
 			endTimer(timer, 'deleteComment', url);
 

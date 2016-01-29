@@ -99,23 +99,20 @@ module.exports = function (config) {
 				throw new Error("URL not covered");
 			}
 		},
-		post: function (urlOrOptions, postData, options, callback) {
+		post: function (urlOrOptions, options, callback) {
 			if (typeof options === 'function' && !callback) {
 				callback = options;
 				options = null;
 			}
 
-			if (typeof postData === 'function' && !options && !callback) {
-				callback = postData;
-				postData = null;
-			}
-
+			let postData;
 			let url;
 			if (typeof urlOrOptions === 'object') {
 				url = urlOrOptions.url;
-				postData = urlOrOptions.formData || urlOrOptions.json;
+				postData = urlOrOptions.form || urlOrOptions.json;
 			} else {
 				url = urlOrOptions;
+				postData = options ? options.form || options.json : null;
 			}
 
 
