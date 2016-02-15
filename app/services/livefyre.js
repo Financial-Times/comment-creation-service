@@ -45,25 +45,14 @@ exports.createCollection = function (config) {
 		}, (err, response) => {
 			endTimer(timer, 'createCollection', url);
 
-			let body;
-			if (response && response.body) {
-				try {
-					body = JSON.parse(response.body);
-				} catch (e) {
-					body = null;
-				}
-			} else {
-				body = null;
-			}
-
-			if (err || !response || response.statusCode < 200 || response.statusCode >= 400 || !body) {
+			if (err || !response || response.statusCode < 200 || response.statusCode >= 400) {
 				if (err || !response || response.statusCode !== 404) {
 					consoleLogger.warn('livefyre.createCollection error', err || new Error(response ? response.statusCode : 'No response'));
 				}
 
 				reject({
 					error: err,
-					responseBody: body,
+					responseBody: null,
 					statusCode: response && response.statusCode ? response.statusCode : 503
 				});
 				return;
