@@ -6,37 +6,30 @@ define({ "api": [
     "version": "1.1.0",
     "group": "v1",
     "name": "deleteComment",
-    "description": "<p>Endpoint to post a comment.</p> ",
+    "description": "<p>Endpoint to post a comment.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "collectionId",
-            "description": "<p>Required. ID of the article.</p> "
+            "description": "<p>Required. ID of the collection.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "commentBody",
-            "description": "<p>Required. Url of the article.</p> "
+            "description": "<p>Required. Body of the comment.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
-            "optional": false,
-            "field": "token",
-            "description": "<p>Required. Title of the article.</p> "
-          },
-          {
-            "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "sessionId",
-            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p> "
+            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p>"
           }
         ]
       }
@@ -46,31 +39,31 @@ define({ "api": [
         "success": [
           {
             "group": "success",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "success",
-            "description": "<p>Whether the response is a success or not.</p> "
+            "description": "<p>Whether the response is a success or not.</p>"
           },
           {
             "group": "success",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "status",
-            "description": "<p>Textual representation of the status of the response</p> "
+            "description": "<p>Textual representation of the status of the response</p>"
           },
           {
             "group": "success",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "code",
-            "description": "<p>HTTP status code of the response</p> "
+            "description": "<p>HTTP status code of the response</p>"
           },
           {
             "group": "success",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "invalidSession",
-            "description": "<p>Whether the user's session is valid or not.</p> "
+            "description": "<p>Whether the user's session is valid or not.</p>"
           }
         ]
       },
@@ -87,38 +80,38 @@ define({ "api": [
         "unclassified": [
           {
             "group": "unclassified",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "success",
-            "description": "<p>Whether the response is a success or not.</p> "
+            "description": "<p>Whether the response is a success or not.</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "status",
-            "description": "<p>Textual representation of the status of the response</p> "
+            "description": "<p>Textual representation of the status of the response</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "code",
-            "description": "<p>HTTP status code of the response</p> "
+            "description": "<p>HTTP status code of the response</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "errorMessage",
-            "description": "<p>The error message</p> "
+            "description": "<p>The error message</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "invalidSession",
-            "description": "<p>Whether the user's session is valid or not.</p> "
+            "description": "<p>Whether the user's session is valid or not.</p>"
           }
         ]
       },
@@ -140,51 +133,51 @@ define({ "api": [
     "version": "1.1.0",
     "group": "v1",
     "name": "getComments",
-    "description": "<p>Endpoint to get the comments of an article and the user's details.</p> ",
+    "description": "<p>Endpoint to get the comments of an article and the user's details.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "articleId",
-            "description": "<p>Required. ID of the article.</p> "
+            "description": "<p>Required. ID of the article.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "url",
-            "description": "<p>Required. Url of the article.</p> "
+            "description": "<p>Required. Url of the article.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "title",
-            "description": "<p>Required. Title of the article.</p> "
+            "description": "<p>Required. Title of the article.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "pageNumber",
-            "description": "<p>Optional. Used for pagination of comments</p> "
+            "description": "<p>Optional. Used for pagination of comments</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "tags",
-            "description": "<p>Optional. Additional tags for the collection (added to the default of CAPI and URL based tags). Comma separated.</p> "
+            "description": "<p>Optional. Additional tags for the collection (added to the default of CAPI and URL based tags). Comma separated.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "sessionId",
-            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p> "
+            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p>"
           }
         ]
       }
@@ -194,126 +187,126 @@ define({ "api": [
         "success": [
           {
             "group": "success",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "collection",
-            "description": "<p>Data about the article</p> "
+            "description": "<p>Data about the article</p>"
           },
           {
             "group": "success",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "collection.collectionId",
-            "description": "<p>ID of the Livefyre collection</p> "
+            "description": "<p>ID of the Livefyre collection</p>"
           },
           {
             "group": "success",
-            "type": "<p>Array</p> ",
+            "type": "Array",
             "optional": false,
             "field": "collection.comments",
-            "description": "<p>A list of comments of the article</p> "
+            "description": "<p>A list of comments of the article</p>"
           },
           {
             "group": "success",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "collection.lastEvent",
-            "description": "<p>Last Livefyre event handled by the application</p> "
+            "description": "<p>Last Livefyre event handled by the application</p>"
           },
           {
             "group": "success",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "collection.totalPages",
-            "description": "<p>Total number of pages of comments</p> "
+            "description": "<p>Total number of pages of comments</p>"
           },
           {
             "group": "success",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "collection.nextPage",
-            "description": "<p>Next page of comments (pagination)</p> "
+            "description": "<p>Next page of comments (pagination)</p>"
           },
           {
             "group": "success",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "userDetails",
-            "description": "<p>Data about the user</p> "
+            "description": "<p>Data about the user</p>"
           },
           {
             "group": "success",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "userDetails.token",
-            "description": "<p>Auth token of Livefyre. See <a href=\"http://answers.livefyre.com/developers/getting-started/tokens/auth/\">Livefyre documentation</a></p> "
+            "description": "<p>Auth token of Livefyre. See <a href=\"http://answers.livefyre.com/developers/getting-started/tokens/auth/\">Livefyre documentation</a></p>"
           },
           {
             "group": "success",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "userDetails.expires",
-            "description": "<p>Timestamp of when the token expires.</p> "
+            "description": "<p>Timestamp of when the token expires.</p>"
           },
           {
             "group": "success",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "userDetails.displayName",
-            "description": "<p>The user's pseudonym (nickname).</p> "
+            "description": "<p>The user's pseudonym (nickname).</p>"
           },
           {
             "group": "success",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "userDetails.settings",
-            "description": "<p>The user's email notification settings.</p> "
+            "description": "<p>The user's email notification settings.</p>"
           },
           {
             "group": "success",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "userDetails.moderationRights",
-            "description": "<p>Moderation rights of the user</p> "
+            "description": "<p>Moderation rights of the user</p>"
           },
           {
             "group": "success",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "userDetails.moderator",
-            "description": "<p>Whether the user is moderator or not.</p> "
+            "description": "<p>Whether the user is moderator or not.</p>"
           }
         ],
         "unclassified": [
           {
             "group": "unclassified",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "collection",
-            "description": "<p>Data about the article</p> "
+            "description": "<p>Data about the article</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "collection.unclassifiedArticle",
-            "description": "<p>Relates to the legacy mapping of articles to different sites based on primary section/URL. If the URL was not mapped by the legacy mapping logic, flag it.</p> "
+            "description": "<p>Relates to the legacy mapping of articles to different sites based on primary section/URL. If the URL was not mapped by the legacy mapping logic, flag it.</p>"
           }
         ],
         "no pseudonym": [
           {
             "group": "no pseudonym",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "userDetails",
-            "description": "<p>Data about the user</p> "
+            "description": "<p>Data about the user</p>"
           },
           {
             "group": "no pseudonym",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "userDetails.pseudonym",
-            "description": "<p>Pseudonym false is the flag that the user does not have a pseudonym yet.</p> "
+            "description": "<p>Pseudonym false is the flag that the user does not have a pseudonym yet.</p>"
           }
         ]
       },
@@ -345,37 +338,30 @@ define({ "api": [
     "version": "1.1.0",
     "group": "v1",
     "name": "postComment",
-    "description": "<p>Endpoint to post a comment.</p> ",
+    "description": "<p>Endpoint to post a comment.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "collectionId",
-            "description": "<p>Required. ID of the article.</p> "
+            "description": "<p>Required. ID of the collection.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "commentBody",
-            "description": "<p>Required. Url of the article.</p> "
+            "description": "<p>Required. Body of the comment.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>String</p> ",
-            "optional": false,
-            "field": "token",
-            "description": "<p>Required. Title of the article.</p> "
-          },
-          {
-            "group": "Parameter",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "sessionId",
-            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p> "
+            "description": "<p>Session ID of the user. Optional, but if not present, FTSession cookie is used.</p>"
           }
         ]
       }
@@ -385,52 +371,52 @@ define({ "api": [
         "success": [
           {
             "group": "success",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "success",
-            "description": "<p>Whether the response is a success or not.</p> "
+            "description": "<p>Whether the response is a success or not.</p>"
           },
           {
             "group": "success",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "status",
-            "description": "<p>Textual representation of the status of the response</p> "
+            "description": "<p>Textual representation of the status of the response</p>"
           },
           {
             "group": "success",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "code",
-            "description": "<p>HTTP status code of the response</p> "
+            "description": "<p>HTTP status code of the response</p>"
           },
           {
             "group": "success",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "bodyHtml",
-            "description": "<p>The content of the comment posted.</p> "
+            "description": "<p>The content of the comment posted.</p>"
           },
           {
             "group": "success",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "commentId",
-            "description": "<p>ID of the comment.</p> "
+            "description": "<p>ID of the comment.</p>"
           },
           {
             "group": "success",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "createdAt",
-            "description": "<p>Timestamp of the creation date of the comment</p> "
+            "description": "<p>Timestamp of the creation date of the comment</p>"
           },
           {
             "group": "success",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "invalidSession",
-            "description": "<p>Whether the user's session is valid or not.</p> "
+            "description": "<p>Whether the user's session is valid or not.</p>"
           }
         ]
       },
@@ -447,38 +433,38 @@ define({ "api": [
         "unclassified": [
           {
             "group": "unclassified",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "success",
-            "description": "<p>Whether the response is a success or not.</p> "
+            "description": "<p>Whether the response is a success or not.</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "status",
-            "description": "<p>Textual representation of the status of the response</p> "
+            "description": "<p>Textual representation of the status of the response</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>Number</p> ",
+            "type": "Number",
             "optional": false,
             "field": "code",
-            "description": "<p>HTTP status code of the response</p> "
+            "description": "<p>HTTP status code of the response</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "errorMessage",
-            "description": "<p>The error message</p> "
+            "description": "<p>The error message</p>"
           },
           {
             "group": "unclassified",
-            "type": "<p>Boolean</p> ",
+            "type": "Boolean",
             "optional": false,
             "field": "invalidSession",
-            "description": "<p>Whether the user's session is valid or not.</p> "
+            "description": "<p>Whether the user's session is valid or not.</p>"
           }
         ]
       },
