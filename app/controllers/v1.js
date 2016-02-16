@@ -226,10 +226,20 @@ function sendActionFailResponse(req, res, err) {
 
 exports.postComment = function (req, res) {
 	const promise = new Promise((resolve, reject) => {
-		if (!req.query.collectionId || !req.query.commentBody) {
+		let collectionId = parseInt(req.query.collectionId, 10);
+		if (typeof collectionId !== 'number' || isNaN(collectionId)) {
 			reject({
 				statusCode: 400,
-				error: new Error('"collectionId" and "commentBody" should be provided.'),
+				error: new Error('"collectionId" should be a valid number.'),
+				safeMessage: true
+			});
+			return;
+		}
+
+		if (!req.query.commentBody) {
+			reject({
+				statusCode: 400,
+				error: new Error('"commentBody" should be provided.'),
 				safeMessage: true
 			});
 			return;
@@ -238,21 +248,13 @@ exports.postComment = function (req, res) {
 		if (req.query.commentBody.length > 2000) {
 			reject({
 				statusCode: 400,
-				error: new Error("commentBody too long. The maximum length is 2000 characters."),
+				error: new Error('"commentBody" too long. The maximum length is 2000 characters.'),
 				safeMessage: true
 			});
 			return;
 		}
 
-		let collectionId = parseInt(req.query.collectionId, 10);
-		if (typeof collectionId !== 'number' || isNaN(collectionId)) {
-			reject({
-				statusCode: 400,
-				error: new Error('"collectionId" should be a number.'),
-				safeMessage: true
-			});
-			return;
-		}
+
 
 		let sessionId;
 		if (req.cookies && req.cookies['FTSession']) {
@@ -330,15 +332,6 @@ const deleteComment = function (config) {
 
 exports.deleteComment = function (req, res) {
 	const promise = new Promise((resolve, reject) => {
-		if (!req.query.collectionId || !req.query.commentId) {
-			reject({
-				statusCode: 400,
-				error: new Error('"collectionId" and "commentId" should be provided.'),
-				safeMessage: true
-			});
-			return;
-		}
-
 		let collectionId = parseInt(req.query.collectionId, 10);
 		if (typeof collectionId !== 'number' || isNaN(collectionId)) {
 			reject({
@@ -358,6 +351,7 @@ exports.deleteComment = function (req, res) {
 			});
 			return;
 		}
+
 
 		let sessionId;
 		if (req.cookies && req.cookies['FTSession']) {

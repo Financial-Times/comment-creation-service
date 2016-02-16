@@ -251,10 +251,18 @@ exports.unfollowCollection = function (config) {
 
 exports.postComment = function (config) {
 	const promise = new Promise((resolve, reject) => {
-		if (!config || typeof config !== 'object' || !config.collectionId || !config.token || !config.commentBody) {
+		if (!config || typeof config !== 'object' || typeof config.collectionId !== 'number' || !config.token || !config.commentBody) {
+			if (!config.token) {
+				reject({
+					statusCode: 401,
+					invalidSession: true
+				});
+				return;
+			}
+
 			reject({
 				statusCode: 400,
-				error: new Error("'collectionId', 'commentBody' and 'token' should be provided."),
+				error: new Error("'collectionId' and 'commentBody' should be provided."),
 				safeMessage: true
 			});
 			return;
