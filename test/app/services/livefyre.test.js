@@ -201,12 +201,12 @@ const requestMock = new RequestMock({
 					return;
 				}
 
-				if (config.matches.urlParams.collectionId && config.matches.urlParams.collectionId.indexOf('down') !== -1) {
+				if (config.matches.urlParams.collectionId && config.matches.urlParams.collectionId.indexOf('111') !== -1) {
 					config.callback(new Error("Service down"));
 					return;
 				}
 
-				if (config.matches.urlParams.collectionId && config.matches.urlParams.collectionId.indexOf('notfound') !== -1) {
+				if (config.matches.urlParams.collectionId && config.matches.urlParams.collectionId.indexOf('222') !== -1) {
 					config.callback(null, {
 						statusCode: 404,
 						body: JSON.stringify({
@@ -644,7 +644,7 @@ describe('livefyre', function() {
 				assert.fail("Should not enter 'then'.");
 			}, (err) => {
 				assert.ok(err, "Error is returned.");
-				assert.equal(err.statusCode, 400, "Status code is correct.");
+				assert.equal(err.statusCode, 401, "Status code is correct.");
 			});
 		});
 
@@ -662,7 +662,7 @@ describe('livefyre', function() {
 
 		it('should return an error if the service is down', function () {
 			return livefyre.postComment({
-				collectionId: 'service-down',
+				collectionId: 111,
 				token: '52343dwdwfwe',
 				commentBody: 'asd'
 			}).then(() => {
@@ -675,7 +675,7 @@ describe('livefyre', function() {
 
 		it('should return an error if the collection is not found', function () {
 			return livefyre.postComment({
-				collectionId: 'notfound',
+				collectionId: 222,
 				token: '52343dwdwfwe',
 				commentBody: 'asd'
 			}).then(() => {
@@ -687,7 +687,7 @@ describe('livefyre', function() {
 		});
 
 		it('should return success message if all parameters are correct', function () {
-			let collectionId = "524234";
+			let collectionId = 524234;
 			let token = 'gsfsfwrf43f34';
 			let commentBody = 'test comment body';
 
@@ -713,7 +713,7 @@ describe('livefyre', function() {
 		});
 
 		it('should send the post data correctly', function () {
-			let collectionId = "524234234";
+			let collectionId = 524234234;
 			let token = 'gsfsfwrf43f34234';
 			let commentBody = 'test comment body 2';
 
