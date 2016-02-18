@@ -27,6 +27,12 @@ const env = {
 			getCollectionDetails: 'http://suds.ft.com/getCollectionDetails'
 		}
 	},
+	spamFilter: {
+		api: {
+			whitelistCollection: 'http://spamfilter.ft.com/whitelist'
+		},
+		key: 1234
+	},
 	'@global': true
 };
 
