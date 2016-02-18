@@ -3,10 +3,12 @@
 const db = require('../services/db');
 const livefyreService = require('../services/livefyre');
 const sudsService = require('../services/suds');
+const spamFilter = require('../services/spamFilter');
 const consoleLogger = require('../utils/consoleLogger');
 const mongoSanitize = require('mongo-sanitize');
 const EventEmitter = require('events');
 const env = require('../../env');
+const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const Timer = require('../utils/Timer');
 
@@ -256,6 +258,14 @@ var CollectionDataStore = function (articleId) {
 					articleId: config.articleId,
 					siteId: sudsCollectionDetails.siteId
 				}).then((livefyreCollectionDetails) => {
+					if (sudsCollectionDetails.collectionCreated) {
+						let collectionMetaDecoded = jwt.decode(sudsCollectionDetails.collectionMeta);
+
+						if (collectionMetaDecoded && collectionMetaDecoded.url && collectionMetaDecoded.url.match(/(.*)marketslive(.*)/)) {
+							spamFilter.whitelistCollection(livefyreCollectionDetails.collectionSettings.collectionId);
+						}
+					}
+
 					return {
 						collectionId: livefyreCollectionDetails.collectionSettings.collectionId,
 						siteId: sudsCollectionDetails.siteId

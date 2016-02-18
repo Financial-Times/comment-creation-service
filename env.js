@@ -24,6 +24,12 @@ var config = {
 			getAuth: process.env.SUDS_API_GET_AUTH
 		}
 	},
+	spamFilter: {
+		api: {
+			whitelistCollection: process.env.SPAM_FILTER_API_COLLECTION_WHITELIST
+		},
+		key: process.env.SPAM_FILTER_API_KEY
+	},
 	logger: {
 		level: process.env.LOGGER_LEVEL
 	},
