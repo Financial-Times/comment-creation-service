@@ -4,9 +4,9 @@ const _ = require('lodash');
 const sudsService = require('../../services/suds');
 const env = require('../../../env');
 const consoleLogger = require('../../utils/consoleLogger');
-const async = require('async');
 
 const healthCheckModel = {
+	id: 'suds',
 	name: 'SUDS API',
 	ok: false,
 	technicalSummary: "SUDS is used to fetch information about an article's siteID mapping and metadata for the collection creation.",
@@ -50,7 +50,7 @@ exports.getHealth = function (callback) {
 		]).then(() => {
 			currentHealth.ok = true;
 
-			resolve(_.pick(currentHealth, ['name', 'ok', 'lastUpdated']));
+			resolve(_.omit(currentHealth, ['checkOutput']));
 		}).catch((err) => {
 			currentHealth.ok = false;
 			currentHealth.checkOutput = err;

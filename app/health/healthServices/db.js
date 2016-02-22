@@ -6,6 +6,7 @@ const env = require('../../../env');
 const consoleLogger = require('../../utils/consoleLogger');
 
 const healthCheckModel = {
+	id: 'mongodb',
 	name: 'Mongo DB connection',
 	ok: false,
 	technicalSummary: "MongoDB is used to store information about the collections and comments",
@@ -32,7 +33,7 @@ exports.getHealth = function (callback) {
 				}
 
 				currentHealth.ok = true;
-				resolve(_.pick(currentHealth, ['name', 'ok', 'lastUpdated']));
+				resolve(_.omit(currentHealth, ['checkOutput']));
 			});
 		}).catch((err) => {
 			currentHealth.ok = false;

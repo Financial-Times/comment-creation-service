@@ -6,6 +6,7 @@ const env = require('../../../env');
 const consoleLogger = require('../../utils/consoleLogger');
 
 const healthCheckModel = {
+	id: 'livefyre-api',
 	name: 'Livefyre API',
 	ok: false,
 	technicalSummary: "Livefyre API is used to create collections and get details about the existing ones, also to get, post and delete comments.",
@@ -40,7 +41,7 @@ exports.getHealth = function (callback) {
 			}())
 		]).then(() => {
 			currentHealth.ok = true;
-			resolve(_.pick(currentHealth, ['name', 'ok', 'lastUpdated']));
+			resolve(_.omit(currentHealth, ['checkOutput']));
 		}).catch((err) => {
 			currentHealth.ok = false;
 			currentHealth.checkOutput = err;
