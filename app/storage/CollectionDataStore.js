@@ -350,6 +350,35 @@ var CollectionDataStore = function (articleId) {
 	};
 
 
+	this.getCollectionId = function () {
+		return getStoredData().then((storedData) => {
+			if (storedData && storedData.collectionId) {
+				return storedData.collectionId;
+			} else {
+				return sudsService.getSiteId(articleId).then((siteIdInfo) => {
+					if (siteIdInfo.unclassifiedArticle === true) {
+						return {
+							unclassifiedArticle: true
+						};
+					} else {
+						return getLivefyreCollectionDetails({
+							articleId: articleId,
+							siteId: siteIdInfo.siteId
+						}).then((livefyreCollectionDetails) => {
+							upsertStoredData({
+								siteId: siteIdInfo.siteId,
+								collectionId: livefyreCollectionDetails.collectionSettings.collectionId
+							});
+
+							return livefyreCollectionDetails.collectionSettings.collectionId;
+						});
+					}
+				});
+			}
+		});
+	};
+
+
 	this.destroy = function () {
 		storedData = null;
 	};

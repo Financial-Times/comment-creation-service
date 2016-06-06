@@ -4,6 +4,7 @@ const sudsService = require('../services/suds');
 const livefyreService = require('../services/livefyre');
 const CollectionDataStore = require('../storage/CollectionDataStore');
 const CommentsCache = require('../storage/CommentsCache');
+const apiKeys = require('../storage/apiKeys');
 const env = require('../../env');
 const async = require('async');
 const _ = require('lodash');
@@ -398,5 +399,69 @@ exports.deleteComment = function (req, res) {
 		sendActionSuccessResponse(req, res, data);
 	}).catch((err) => {
 		sendActionFailResponse(req, res, err);
+	});
+};
+
+exports.closeCollection = function (req, res) {
+	if (!req.query.articleId && !req.body.articleId) {
+		res.status(400).send({
+			success: false,
+			status: "error",
+			error: '"articleId" should be provided.'
+		});
+		return;
+	}
+
+	const articleId = req.query.articleId || req.body.articleId;
+
+
+	if (!req.headers['x-api-key']) {
+		res.status(400).send({
+			success: false,
+			status: "error",
+			error: 'The API key is missing.'
+		});
+		return;
+	}
+
+
+	apiKeys.validate(req.headers['x-api-key']).catch((err) => {
+		res.status(503).send({
+			success: false,
+			status: "error",
+			error: 'The system cannot handle requests at the moment.'
+		});
+		return;
+	}).then((validated) => {
+		if (!validated) {
+			res.status(401).send({
+				success: false,
+				status: "error",
+				error: 'The API key is invalid.'
+			});
+			return;
+		} else {
+			let collectionDataStore = new CollectionDataStore(articleId);
+			collectionDataStore.getCollectionId().then((collectionId) => {
+				livefyreService.closeCollection(collectionId).then(() => {
+					res.send({
+						success: true,
+						status: "ok"
+					});
+				}).catch((err) => {
+					res.status(err.statusCode || 503).send({
+						success: false,
+						status: "error",
+						error: err.statusCode === 404 ? "Collection not found" : "Error occurred while determining the collection ID."
+					});
+				});
+			}).catch((err) => {
+				res.status(err.statusCode || 503).send({
+					success: false,
+					status: "error",
+					error: err.statusCode === 404 ? "Collection not found" : "Error occurred while determining the collection ID."
+				});
+			});
+		}
 	});
 };

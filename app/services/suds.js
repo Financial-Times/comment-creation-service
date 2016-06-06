@@ -125,3 +125,52 @@ exports.getAuth = function (sessionId) {
 
 	return promise;
 };
+
+exports.getSiteId = function (articleId) {
+	const promise = new Promise((resolve, reject) => {
+		if (!articleId) {
+			reject({
+				statusCode: 400,
+				error: new Error('"articleId" should be provided.'),
+				safeMessage: true
+			});
+			return;
+		}
+
+		let url = env.suds.api.getSiteId;
+			url += '?articleId=' + encodeURIComponent(articleId);
+
+		let timer = new Timer();
+
+		request.get(url, function (err, response) {
+			endTimer(timer, 'getSiteId');
+
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response || response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				if (err || !response || response.statusCode !== 404) {
+					consoleLogger.warn('suds.getSiteId error', err || new Error(response ? response.statusCode : 'No response'));
+				}
+
+				reject({
+					error: err,
+					statusCode: response && response.statusCode ? response.statusCode : 503
+				});
+				return;
+			}
+
+			resolve(body);
+		});
+	});
+
+	return promise;
+};

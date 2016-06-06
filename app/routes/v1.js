@@ -212,4 +212,59 @@ router.post('/postComment', v1Controller.postComment);
 router.get('/deleteComment', v1Controller.deleteComment);
 router.delete('/deleteComment', v1Controller.deleteComment);
 
+
+/**
+ * @api {get / post} v1/closeCollection Close collection
+ * @apiVersion 1.1.0
+ * @apiGroup v1
+ * @apiName closeCollection
+ * @apiDescription Closes a collection for new comments.
+ *
+ * @apiParam {String} articleId ID of the article
+ *
+ * @apiHeader {String} X-Api-Key Access API key.
+ *
+ *
+ * @apiSuccessExample Success
+ *  HTTP/1.1 200 OK
+ *   {
+ *       "success": true,
+ *       "status": "ok",
+ *   }
+ *
+ * @apiSuccessExample Collection not found
+ *  HTTP/1.1 404 Not found
+ *   {
+ *       "success": false,
+ *       "status": "error",
+ *       "error": "Collection not found."
+ *   }
+ *
+ * @apiErrorExample {400} No articleId
+ *  HTTP/1.1 400 Bad request
+ *   {
+ *       "success": false,
+ *       "status": "error",
+ *       "error": "'articleId' should be provided."
+ *   }
+ *
+ * @apiErrorExample {400} No API key
+ *  HTTP/1.1 400 Bad request
+ *   {
+ *       "success": false,
+ *       "status": "error",
+ *       "error": "The API key is missing."
+ *   }
+ *
+ * @apiErrorExample {401} API key invalid
+ *  HTTP/1.1 401 Unauthorized
+ *   {
+ *       "success": false,
+ *       "status": "error",
+ *       "error": "The API key is invalid."
+ *   }
+ */
+router.get('/closeCollection', v1Controller.closeCollection);
+router.post('/closeCollection', v1Controller.closeCollection);
+
 module.exports = router;

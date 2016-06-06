@@ -5,6 +5,28 @@ const env = require('../../env');
 const consoleLogger = require('../utils/consoleLogger');
 const Timer = require('../utils/Timer');
 const _ = require('lodash');
+const livefyreLib = require('livefyre');
+
+
+
+var network = livefyreLib.getNetwork(env.livefyre.network.name + '.fyre.co', env.livefyre.network.key);
+
+var systemTokenCache = {
+	token: null,
+	expiresAt: null
+};
+var getSystemToken = function () {
+	if (systemTokenCache.token && systemTokenCache.expiresAt < new Date()) {
+		return systemTokenCache.token;
+	}
+
+	systemTokenCache.token = network.buildLivefyreToken();
+	systemTokenCache.expiresAt = new Date(new Date().getTime() + 1000 * 60 * 60 * 23.5);
+
+	return systemTokenCache.token;
+};
+
+
 
 const endTimer = function (timer, serviceName, url) {
 	let elapsedTime = timer.getElapsedTime();
@@ -407,4 +429,67 @@ exports.deleteComment = function (config) {
 	});
 
 	return promise;
+};
+
+
+exports.closeCollection = function (collectionId) {
+	const setting = 'commenting_enabled';
+
+	return new Promise((resolve, reject) => {
+		if (!collectionId) {
+			reject({
+				statusCode: 400,
+				error: new Error("'collectionId' should be provided."),
+				safeMessage: true
+			});
+			return;
+		}
+
+		let url = env.livefyre.api.changeCollectionUrl;
+		url = url.replace(/\{networkName\}/g, env.livefyre.network.name);
+		url = url.replace(/\{collectionId\}/g, collectionId);
+		url = url.replace(/\{setting\}/g, setting);
+
+
+		let timer = new Timer();
+		request.post(url + '?lftoken=' + getSystemToken(), {
+			body: 'false'
+		}, function (err, response) {
+			endTimer(timer, 'closeCollection', url);
+
+			let body;
+			if (response && response.body) {
+				try {
+					body = JSON.parse(response.body);
+				} catch (e) {
+					body = null;
+				}
+			} else {
+				body = null;
+			}
+
+			if (err || !response|| response.statusCode < 200 || response.statusCode >= 400 || !body) {
+				reject({
+					error: err,
+					responseBody: body,
+					statusCode: response && response.statusCode ? response.statusCode : 503
+				});
+
+				if (err) {
+					consoleLogger.warn('livefyre.closeCollection error', err);
+				}
+				return;
+			}
+
+			if (body && body.status === "ok") {
+				resolve(body);
+			} else {
+				reject({
+					statusCode: response && response.statusCode ? response.statusCode : 503,
+					error: new Error("Invalid response received from Livefyre."),
+					responseBody: body
+				});
+			}
+		});
+	});
 };
