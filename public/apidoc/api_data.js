@@ -1,6 +1,76 @@
 define({ "api": [
   {
     "type": "get / post",
+    "url": "v1/closeCollection",
+    "title": "Close collection",
+    "version": "1.1.0",
+    "group": "v1",
+    "name": "closeCollection",
+    "description": "<p>Closes a collection for new comments.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "articleId",
+            "description": "<p>ID of the article</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "X-Api-Key",
+            "description": "<p>Access API key.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success",
+          "content": "HTTP/1.1 200 OK\n {\n     \"success\": true,\n     \"status\": \"ok\",\n }",
+          "type": "json"
+        },
+        {
+          "title": "Collection not found",
+          "content": "HTTP/1.1 404 Not found\n {\n     \"success\": false,\n     \"status\": \"error\",\n     \"error\": \"Collection not found.\"\n }",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "No articleId",
+          "content": "HTTP/1.1 400 Bad request\n {\n     \"success\": false,\n     \"status\": \"error\",\n     \"error\": \"'articleId' should be provided.\"\n }",
+          "type": "400"
+        },
+        {
+          "title": "No API key",
+          "content": "HTTP/1.1 400 Bad request\n {\n     \"success\": false,\n     \"status\": \"error\",\n     \"error\": \"The API key is missing.\"\n }",
+          "type": "400"
+        },
+        {
+          "title": "API key invalid",
+          "content": "HTTP/1.1 401 Unauthorized\n {\n     \"success\": false,\n     \"status\": \"error\",\n     \"error\": \"The API key is invalid.\"\n }",
+          "type": "401"
+        }
+      ]
+    },
+    "filename": "app/routes/v1.js",
+    "groupTitle": "v1"
+  },
+  {
+    "type": "get / post",
     "url": "v1/deleteComment",
     "title": "deleteComment",
     "version": "1.1.0",
