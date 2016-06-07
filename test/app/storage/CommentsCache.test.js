@@ -7,6 +7,7 @@ const consoleLogger = require('../../../app/utils/consoleLogger');
 const RequestMock = require('../../../mocks/request');
 const MongodbMock = require('../../../mocks/mongodb');
 const uuid = require('node-uuid');
+const LivefyreMock = require('../../../mocks/livefyre');
 
 consoleLogger.disable();
 
@@ -285,6 +286,12 @@ const requestMock = new RequestMock({
 	global: true
 });
 
+const systemToken = 'system-token';
+const livefyreMock = new LivefyreMock({
+	systemToken: systemToken,
+	global: true
+});
+
 
 const commentsCache = [];
 Object.keys(articles).forEach((key) => {
@@ -305,7 +312,8 @@ const mongodbMock = new MongodbMock({
 const CommentsCache = proxyquire('../../../app/storage/CommentsCache.js', {
 	'request': requestMock.mock,
 	'../../env': env,
-	mongodb: mongodbMock.mock
+	mongodb: mongodbMock.mock,
+	livefyre: livefyreMock.mock
 });
 
 describe('CommentsCache', function () {

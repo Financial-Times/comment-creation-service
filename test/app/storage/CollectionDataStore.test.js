@@ -6,6 +6,7 @@ const proxyquire =  require('proxyquire');
 const consoleLogger = require('../../../app/utils/consoleLogger');
 const RequestMock = require('../../../mocks/request');
 const MongodbMock = require('../../../mocks/mongodb');
+const LivefyreMock = require('../../../mocks/livefyre');
 
 consoleLogger.disable();
 
@@ -15,7 +16,8 @@ const env = {
 	},
 	livefyre: {
 		network: {
-			name: 'ft123'
+			name: 'ft123',
+			key: '123'
 		},
 		api: {
 			createCollectionUrl: 'http://{networkName}.fyre.co/{siteId}/commentsByPageUrl',
@@ -260,6 +262,12 @@ const requestMock = new RequestMock({
 	global: true
 });
 
+const systemToken = 'system-token';
+const livefyreMock = new LivefyreMock({
+	systemToken: systemToken,
+	global: true
+});
+
 const mongodbMock = new MongodbMock({
 	dbMock: {
 		collections: [{
@@ -275,7 +283,8 @@ const mongodbMock = new MongodbMock({
 const CollectionDataStore = proxyquire('../../../app/storage/CollectionDataStore.js', {
 	'request': requestMock.mock,
 	'../../env': env,
-	mongodb: mongodbMock.mock
+	mongodb: mongodbMock.mock,
+	'livefyre': livefyreMock.mock
 });
 
 describe('CollectionDataStore', function () {

@@ -4,13 +4,15 @@ const assert = require('assert');
 const proxyquire =  require('proxyquire');
 const consoleLogger = require('../../../app/utils/consoleLogger');
 const RequestMock = require('../../../mocks/request');
+const LivefyreMock = require('../../../mocks/livefyre');
 
 consoleLogger.disable();
 
 const env = {
 	livefyre: {
 		network: {
-			name: 'ft123'
+			name: 'ft123',
+			key: '1234'
 		},
 		api: {
 			commentsByPageUrl: 'http://{networkName}.fyre.co/{siteId}/article/{articleIdBase64}/commentsByPageUrl/{pageNumber}.json',
@@ -18,7 +20,8 @@ const env = {
 			createCollectionUrl: 'http://{networkName}.fyre.co/{siteId}/commentsByPageUrl',
 			unfollowCollectionUrl: 'http://{networkName}.fyre.co/collection/{collectionId}/unfollow/',
 			postCommentUrl: 'http://{networkName}.fyre.co/collection/{collectionId}/post/',
-			deleteCommentUrl: 'http://{networkName}.fyre.co/comment/{commentId}/delete/'
+			deleteCommentUrl: 'http://{networkName}.fyre.co/comment/{commentId}/delete/',
+			changeCollectionUrl: 'https://{networkName}.admin.fyre.co/api/v3.0/collections/settings/{collectionId}/{setting}'
 		}
 	},
 	'@global': true
@@ -274,8 +277,15 @@ const requestMock = new RequestMock({
 	global: true
 });
 
+const systemToken = 'system-token';
+const livefyreMock = new LivefyreMock({
+	systemToken: systemToken,
+	global: true
+});
+
 const livefyre = proxyquire('../../../app/services/livefyre.js', {
 	'request': requestMock.mock,
+	'livefyre': livefyreMock.mock,
 	'../../env': env
 });
 
