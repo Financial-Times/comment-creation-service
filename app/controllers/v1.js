@@ -403,18 +403,6 @@ exports.deleteComment = function (req, res) {
 };
 
 exports.closeCollection = function (req, res) {
-	if (!req.query.articleId && !req.body.articleId) {
-		res.status(400).send({
-			success: false,
-			status: "error",
-			error: '"articleId" should be provided.'
-		});
-		return;
-	}
-
-	const articleId = req.query.articleId || req.body.articleId;
-
-
 	if (!req.headers['x-api-key']) {
 		res.status(400).send({
 			success: false,
@@ -423,7 +411,6 @@ exports.closeCollection = function (req, res) {
 		});
 		return;
 	}
-
 
 	apiKeys.validate(req.headers['x-api-key']).catch((err) => {
 		res.status(503).send({
@@ -441,6 +428,17 @@ exports.closeCollection = function (req, res) {
 			});
 			return;
 		} else {
+			if (!req.query.articleId && !req.body.articleId) {
+				res.status(400).send({
+					success: false,
+					status: "error",
+					error: '"articleId" should be provided.'
+				});
+				return;
+			}
+
+			const articleId = req.query.articleId || req.body.articleId;
+
 			let collectionDataStore = new CollectionDataStore(articleId);
 			collectionDataStore.getCollectionId().then((collectionId) => {
 				livefyreService.closeCollection(collectionId).then(() => {
