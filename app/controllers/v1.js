@@ -54,9 +54,10 @@ exports.getComments = function (req, res) {
 								collectionId: collectionDetails.collectionId,
 								siteId: collectionDetails.siteId,
 								comments: commentsData.comments || [],
+								commentsDisabled: commentsData.commentsDisabled,
 								lastEvent: commentsData.lastEvent || 0,
 								totalPages: commentsData.totalPages,
-								nextPage: commentsData.nextPage
+								nextPage: commentsData.nextPage,
 							});
 						}).catch((err) => {
 							callback(err);
