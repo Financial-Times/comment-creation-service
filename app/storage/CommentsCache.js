@@ -335,9 +335,7 @@ const CommentsCache = function (articleId, siteId) {
 							totalPages: totalPages,
 							pageNumber: 0
 						}).then((commentsData) => {
-							resolve(_.extend(commentsData, {
-								commentsDisabled: collectionInfo.commentsDisabled
-							}));
+							resolve(commentsData);
 						}).catch(reject);
 					} else {
 						Promise.all([
@@ -366,9 +364,7 @@ const CommentsCache = function (articleId, siteId) {
 						totalPages: totalPages,
 						pageNumber: pageNumber
 					}).then((commentsData) => {
-						resolve(_.extend(commentsData, {
-							commentsDisabled: collectionInfo.commentsDisabled
-						}));
+						resolve(commentsData);
 					}).catch(reject);
 				}
 			}).catch(reject);
