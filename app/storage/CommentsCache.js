@@ -181,28 +181,21 @@ const CommentsCache = function (articleId, siteId) {
 
 
 
-	const getCollectionInfo = function () {
+	const getTotalPages = function () {
 		return new Promise((resolve, reject) => {
 			getStoredData().then((storedData) => {
-				if (storedData && storedData.totalPages && typeof storedData.commentsDisabled === 'boolean') {
-					resolve({
-						totalPages: storedData.totalPages,
-						commentsDisabled: storedData.commentsDisabled
-					});
+				if (storedData && storedData.totalPages) {
+					resolve(storedData.totalPages);
 				} else {
 					livefyreService.getCollectionInfoPlus({
 						articleId: articleId,
 						siteId: siteId
 					}).then((livefyreCollectionDetails) => {
 						upsertStoredData({
-							totalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages,
-							commentsDisabled: livefyreCollectionDetails.collectionSettings.commentsDisabled
+							totalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages
 						});
 
-						resolve({
-							totalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages,
-							commentsDisabled: livefyreCollectionDetails.collectionSettings.commentsDisabled
-						});
+						resolve(livefyreCollectionDetails.collectionSettings.archiveInfo.nPages);
 					}).catch(reject);
 				}
 			}).catch(() => {
@@ -210,10 +203,7 @@ const CommentsCache = function (articleId, siteId) {
 					articleId: articleId,
 					siteId: siteId
 				}).then((livefyreCollectionDetails) => {
-					resolve({
-						totalPages: livefyreCollectionDetails.collectionSettings.archiveInfo.nPages,
-						commentsDisabled: livefyreCollectionDetails.collectionSettings.commentsDisabled
-					});
+					resolve(livefyreCollectionDetails.collectionSettings.archiveInfo.nPages);
 				}).catch(reject);
 			});
 		});
@@ -327,8 +317,7 @@ const CommentsCache = function (articleId, siteId) {
 			}
 
 
-			getCollectionInfo(storedData).then((collectionInfo) => {
-				const totalPages = collectionInfo.totalPages;
+			getTotalPages(storedData).then((totalPages) => {
 				if (fetchInit) {
 					if (totalPages <= 1) {
 						getCommentsByPage({
@@ -352,8 +341,7 @@ const CommentsCache = function (articleId, siteId) {
 								comments: [].concat(results[0].comments).concat(results[1].comments),
 								lastEvent: results[0].lastEvent,
 								totalPages: totalPages,
-								nextPage: results[1].nextPage,
-								commentsDisabled: collectionInfo.commentsDisabled
+								nextPage: results[1].nextPage
 							};
 
 							resolve(commentData);
