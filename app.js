@@ -5,6 +5,7 @@ var path = require('path');
 //var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var compression = require('compression');
 var cors = require('cors');
 var consoleLogger = require('./app/utils/consoleLogger');
 var env = require('./env');
@@ -50,6 +51,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hjs');
 
 //app.use(logger('dev'));
+app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
 	extended: false
