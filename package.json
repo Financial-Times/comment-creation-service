@@ -6,6 +6,9 @@
     "test": "node_modules/.bin/mocha",
     "test-watch": "node_modules/.bin/mocha -w"
   },
+  "engines": {
+    "node": "^6"
+  },
   "dependencies": {
     "async": "^1.4.2",
     "body-parser": "~1.13.2",
