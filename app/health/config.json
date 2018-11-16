@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"systemCode": "ft-ccs",
+	"systemCode": "livefyre-ccs",
 	"name": "comment-creation-service",
 	"description": "comment-creation-service",
 	"checks": [
