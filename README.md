@@ -39,7 +39,7 @@ heroku config -s  >> .env --app comment-creation-service-test
 If you've installed the database locally, define the local database URL:
 
 ```
-DATABASE_URL=mongodb://localhost:27017/comment-creation-service
+MONGOLAB_URI=mongodb://localhost:27017/comment-creation-service
 ```
 
 Now run the initial npm install on the app
