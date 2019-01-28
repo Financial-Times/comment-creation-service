@@ -93,7 +93,14 @@ exports.getAuth = function (sessionId) {
 
 		let timer = new Timer();
 
-		request.get(env.suds.api.getAuth + '?sessionId=' + sessionId, function (err, response) {
+		const url = `${env.suds.api.getAuth}?sessionId=${sessionId}`
+
+		request.get({
+			url,
+			headers:{
+				'X-Api-Key': process.env.SUDS_API_KEY
+			}
+		}, function (err, response) {
 			endTimer(timer, 'getAuth');
 
 			let body;
@@ -137,12 +144,16 @@ exports.getSiteId = function (articleId) {
 			return;
 		}
 
-		let url = env.suds.api.getSiteId;
-			url += '?articleId=' + encodeURIComponent(articleId);
+		const url = `${env.suds.api.getSiteId}?articleId=${encodeURIComponent(articleId)}`;
 
 		let timer = new Timer();
 
-		request.get(url, function (err, response) {
+		request.get({
+			url,
+			headers: {
+				'X-Api-Key': process.env.SUDS_API_KEY
+			}
+		}, function (err, response) {
 			endTimer(timer, 'getSiteId');
 
 			let body;
