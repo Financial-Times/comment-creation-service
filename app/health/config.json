@@ -5,7 +5,6 @@
 	"description": "comment-creation-service",
 	"checks": [
 		"db",
-		"livefyreApi",
 		"suds"
 	]
 }
